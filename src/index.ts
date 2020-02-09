@@ -78,6 +78,20 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
           },
           peerDependencies: {
             karma: '~4.4.1',
+            protractor: '~5.4.3',
+          },
+          peerDependenciesMeta: {
+            karma: {optional: true},
+            protractor: {optional: true},
+          },
+        },
+      );
+
+      registerPackageExtension(
+        structUtils.makeDescriptor(structUtils.makeIdent(null, 'protractor'), '*'),
+        {
+          dependenciesMeta: {
+            'webdriver-manager': {unplugged: true},
           },
         },
       );

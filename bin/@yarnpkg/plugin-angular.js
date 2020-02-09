@@ -167,7 +167,23 @@ module.exports = {
             'pnp-webpack-plugin': '^1.6.0'
           },
           peerDependencies: {
-            karma: '~4.4.1'
+            karma: '~4.4.1',
+            protractor: '~5.4.3'
+          },
+          peerDependenciesMeta: {
+            karma: {
+              optional: true
+            },
+            protractor: {
+              optional: true
+            }
+          }
+        });
+        registerPackageExtension(core_1.structUtils.makeDescriptor(core_1.structUtils.makeIdent(null, 'protractor'), '*'), {
+          dependenciesMeta: {
+            'webdriver-manager': {
+              unplugged: true
+            }
           }
         });
       },
@@ -222,7 +238,7 @@ module.exports = {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = "diff --git a/src/angular-cli-files/models/webpack-configs/common.js b/src/angular-cli-files/models/webpack-configs/common.js\nsemver exclusivity > 0.803.0 < 0.900.0\n--- a/src/angular-cli-files/models/webpack-configs/common.js\n+++ b/src/angular-cli-files/models/webpack-configs/common.js\n@@ -32,10 +32,7 @@ function getCommonConfig(wco) {\n     const { root, projectRoot, buildOptions, tsConfig } = wco;\n     const { styles: stylesOptimization, scripts: scriptsOptimization } = buildOptions.optimization;\n     const { styles: stylesSourceMap, scripts: scriptsSourceMap, vendor: vendorSourceMap, } = buildOptions.sourceMap;\n-    const nodeModules = find_up_1.findUp('node_modules', projectRoot);\n-    if (!nodeModules) {\n-        throw new Error('Cannot locate node_modules directory.');\n-    }\n+    const nodeModules = undefined;\n     // tslint:disable-next-line:no-any\n     const extraPlugins = [];\n     const entryPoints = {};\n@@ -327,6 +324,9 @@ function getCommonConfig(wco) {\n         devtool: false,\n         profile: buildOptions.statsJson,\n         resolve: {\n+            plugins: [\n+                require('pnp-webpack-plugin'),\n+            ],\n             extensions: ['.ts', '.tsx', '.mjs', '.js'],\n             symlinks: !buildOptions.preserveSymlinks,\n             modules: [wco.tsConfig.options.baseUrl || projectRoot, 'node_modules'],\n@@ -334,6 +334,9 @@ function getCommonConfig(wco) {\n         },\n         resolveLoader: {\n             modules: loaderNodeModules,\n+            plugins: [\n+                require('pnp-webpack-plugin').moduleLoader(module),\n+            ],\n         },\n         context: projectRoot,\n         entry: entryPoints,\n";
+  exports.default = "diff --git a/src/angular-cli-files/models/webpack-configs/common.js b/src/angular-cli-files/models/webpack-configs/common.js\nsemver exclusivity >= 0.900.0\n--- a/src/angular-cli-files/models/webpack-configs/common.js\n+++ b/src/angular-cli-files/models/webpack-configs/common.js\n@@ -385,6 +385,9 @@ function getCommonConfig(wco) {\n         devtool: false,\n         profile: buildOptions.statsJson,\n         resolve: {\n+            plugins: [\n+                require('pnp-webpack-plugin'),\n+            ],\n             extensions: ['.ts', '.tsx', '.mjs', '.js'],\n             symlinks: !buildOptions.preserveSymlinks,\n             modules: [wco.tsConfig.options.baseUrl || projectRoot, 'node_modules'],\n@@ -393,6 +396,9 @@ function getCommonConfig(wco) {\n         resolveLoader: {\n             symlinks: !buildOptions.preserveSymlinks,\n             modules: loaderNodeModules,\n+            plugins: [\n+                require('pnp-webpack-plugin').moduleLoader(module),\n+            ],\n         },\n         context: projectRoot,\n         entry: entryPoints,\ndiff --git a/src/angular-cli-files/models/webpack-configs/common.js b/src/angular-cli-files/models/webpack-configs/common.js\nsemver exclusivity > 0.803.0 < 0.900.0\n--- a/src/angular-cli-files/models/webpack-configs/common.js\n+++ b/src/angular-cli-files/models/webpack-configs/common.js\n@@ -32,10 +32,7 @@ function getCommonConfig(wco) {\n     const { root, projectRoot, buildOptions, tsConfig } = wco;\n     const { styles: stylesOptimization, scripts: scriptsOptimization } = buildOptions.optimization;\n     const { styles: stylesSourceMap, scripts: scriptsSourceMap, vendor: vendorSourceMap, } = buildOptions.sourceMap;\n-    const nodeModules = find_up_1.findUp('node_modules', projectRoot);\n-    if (!nodeModules) {\n-        throw new Error('Cannot locate node_modules directory.');\n-    }\n+    const nodeModules = undefined;\n     // tslint:disable-next-line:no-any\n     const extraPlugins = [];\n     const entryPoints = {};\n@@ -327,6 +324,9 @@ function getCommonConfig(wco) {\n         devtool: false,\n         profile: buildOptions.statsJson,\n         resolve: {\n+            plugins: [\n+                require('pnp-webpack-plugin'),\n+            ],\n             extensions: ['.ts', '.tsx', '.mjs', '.js'],\n             symlinks: !buildOptions.preserveSymlinks,\n             modules: [wco.tsConfig.options.baseUrl || projectRoot, 'node_modules'],\n@@ -334,6 +334,9 @@ function getCommonConfig(wco) {\n         },\n         resolveLoader: {\n             modules: loaderNodeModules,\n+            plugins: [\n+                require('pnp-webpack-plugin').moduleLoader(module),\n+            ],\n         },\n         context: projectRoot,\n         entry: entryPoints,\ndiff --git a/src/protractor/index.js b/src/protractor/index.js\nsemver exclusivity < 0.900.0\n--- a/src/protractor/index.js\n+++ b/src/protractor/index.js\n@@ -27,21 +27,14 @@ function runProtractor(root, options) {\n async function updateWebdriver() {\n     // The webdriver-manager update command can only be accessed via a deep import.\n     const webdriverDeepImport = 'webdriver-manager/built/lib/cmds/update';\n-    const importOptions = [\n-        // When using npm, webdriver is within protractor/node_modules.\n-        `protractor/node_modules/${webdriverDeepImport}`,\n-        // When using yarn, webdriver is found as a root module.\n-        webdriverDeepImport,\n-    ];\n     let path;\n-    for (const importOption of importOptions) {\n-        try {\n-            path = require.resolve(importOption);\n-        }\n-        catch (error) {\n-            if (error.code !== 'MODULE_NOT_FOUND') {\n-                throw error;\n-            }\n+    try {\n+        const protractorPath = require.resolve('protractor');\n+        path = require.resolve(webdriverDeepImport, { paths: [protractorPath] });\n+    }\n+    catch (error) {\n+        if (error.code !== 'MODULE_NOT_FOUND') {\n+            throw error;\n         }\n     }\n     if (!path) {\n";
 
   /***/ }),
   /* 4 */

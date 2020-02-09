@@ -24,7 +24,7 @@ This plugin is experimental. It should work for angular 8.3 and 9, but only part
   - ✅ Building an application (`@angular-devkit/build-angular:browser`)
   - ✅ Serving an application (`@angular-devkit/build-angular:dev-server`)
   - ✅ Running unit tests (`@angular-devkit/build-angular:karma`)
-  - ❓ Running e2e tests (`@angular-devkit/build-angular:protractor`)
+  - ✅ Running e2e tests (`@angular-devkit/build-angular:protractor`)
   - &hellip;
 - Other:
   - &hellip;
