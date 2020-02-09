@@ -1,0 +1,29 @@
+diff --git a/commands/version-impl.js b/commands/version-impl.js
+--- a/commands/version-impl.js
++++ b/commands/version-impl.js
+@@ -45,7 +45,7 @@ class VersionCommand extends command_1.Command {
+             ...Object.keys((projPkg && projPkg['dependencies']) || {}),
+             ...Object.keys((projPkg && projPkg['devDependencies']) || {}),
+         ];
+-        if (packageRoot != null) {
++        if (false && packageRoot != null) {
+             // Add all node_modules and node_modules/@*/*
+             const nodePackageNames = fs.readdirSync(packageRoot).reduce((acc, name) => {
+                 if (name.startsWith('@')) {
+@@ -63,7 +63,15 @@ class VersionCommand extends command_1.Command {
+             if (name in acc) {
+                 return acc;
+             }
+-            acc[name] = this.getVersion(name, packageRoot, maybeNodeModules);
++            try {
++                acc[name] = require(require.resolve(`${name}/package.json`, {paths: [this.workspace.root]})).version;
++            } catch (_) {
++                try {
++                    acc[name] = require(path.resolve(cliNodeModules, moduleName, 'package.json')).version + ' (cli-only)';
++                } catch (_) {
++                    acc[name] = '<error>';
++                }
++            }
+             return acc;
+         }, {});
+         let ngCliVersion = pkg.version;

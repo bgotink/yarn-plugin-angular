@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    // Enable decorators
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+
+    // Add sourcemaps
+    "inlineSources": true,
+    "inlineSourceMap": true,
+
+    // Pretty print the javascript
+    "pretty": true,
+
+    // Don't emit on error
+    "noEmitOnError": true,
+
+    // No declarations
+    "declaration": false,
+
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    // Make it strict
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "alwaysStrict": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+
+    "preserveSymlinks": true,
+
+    // Don't fail on type errors in libraries
+    "skipLibCheck": true,
+
+    // Improve compatibility with npm packages
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    // Allow importing JSON files
+    "resolveJsonModule": true,
+
+    "target": "esnext",
+    "lib": ["esnext"]
+  },
+  "include": ["src/**/*.ts"]
+}

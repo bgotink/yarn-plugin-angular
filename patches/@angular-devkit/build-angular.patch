@@ -1,0 +1,36 @@
+diff --git a/src/angular-cli-files/models/webpack-configs/common.js b/src/angular-cli-files/models/webpack-configs/common.js
+semver exclusivity > 0.803.0 < 0.900.0
+--- a/src/angular-cli-files/models/webpack-configs/common.js
++++ b/src/angular-cli-files/models/webpack-configs/common.js
+@@ -32,10 +32,7 @@ function getCommonConfig(wco) {
+     const { root, projectRoot, buildOptions, tsConfig } = wco;
+     const { styles: stylesOptimization, scripts: scriptsOptimization } = buildOptions.optimization;
+     const { styles: stylesSourceMap, scripts: scriptsSourceMap, vendor: vendorSourceMap, } = buildOptions.sourceMap;
+-    const nodeModules = find_up_1.findUp('node_modules', projectRoot);
+-    if (!nodeModules) {
+-        throw new Error('Cannot locate node_modules directory.');
+-    }
++    const nodeModules = undefined;
+     // tslint:disable-next-line:no-any
+     const extraPlugins = [];
+     const entryPoints = {};
+@@ -327,6 +324,9 @@ function getCommonConfig(wco) {
+         devtool: false,
+         profile: buildOptions.statsJson,
+         resolve: {
++            plugins: [
++                require('pnp-webpack-plugin'),
++            ],
+             extensions: ['.ts', '.tsx', '.mjs', '.js'],
+             symlinks: !buildOptions.preserveSymlinks,
+             modules: [wco.tsConfig.options.baseUrl || projectRoot, 'node_modules'],
+@@ -334,6 +334,9 @@ function getCommonConfig(wco) {
+         },
+         resolveLoader: {
+             modules: loaderNodeModules,
++            plugins: [
++                require('pnp-webpack-plugin').moduleLoader(module),
++            ],
+         },
+         context: projectRoot,
+         entry: entryPoints,

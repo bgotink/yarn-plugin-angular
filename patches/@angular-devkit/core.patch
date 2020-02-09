@@ -1,0 +1,87 @@
+diff --git a/node/resolve.js b/node/resolve.js
+index 41c5a81..77cfbe4 100644
+semver exclusivity >=8.3.13
+--- a/node/resolve.js
++++ b/node/resolve.js
+@@ -66,7 +66,80 @@ function _getGlobalNodeModules() {
+         ? path.resolve(globalPrefix || '', 'lib', 'node_modules')
+         : path.resolve(globalPrefix || '', 'node_modules');
+ }
+-let _resolveHook = null;
++const pnpapi = require('pnpapi');
++let _resolveHook =
++    /**
++     *
++     * @param {string} request
++     * @param {{paths?: string[]; checkLocal?: boolean; basedir: string}} options
++     */
++    function resolveHook(request, options) {
++      const basePath = options.basedir;
++
++      if (/^(?:\.\.?(?:\/|$)|\/|([A-Za-z]:)?[/\\])/.test(request)) {
++        let res = path.resolve(basePath, request);
++        if (request === '..' || request.endsWith('/')) {
++          res += '/';
++        }
++
++        const m = resolve(res, options);
++        if (m) {
++          return m;
++        }
++      } else {
++        const n = resolve(request, options);
++        if (n) {
++          return n;
++        }
++      }
++
++      if (options.checkLocal) {
++        const callers = _caller();
++        for (const caller of callers) {
++          const localDir = path.dirname(caller);
++          if (localDir !== options.basedir) {
++            try {
++              return resolveHook(x, {
++                ...options,
++                checkLocal: false,
++                basedir: localDir,
++              });
++            } catch (e) {
++              // Just swap the basePath with the original call one.
++              if (!(e instanceof ModuleNotFoundException)) {
++                throw e;
++              }
++            }
++          }
++        }
++      }
++
++      throw new ModuleNotFoundException(request, basePath);
++
++      function resolve(request, options) {
++        if (options.resolvePackageJson) {
++          try {
++            return pnpapi.resolveRequest(path.join(request, 'package.json'), options.basedir);
++          } catch (_) {
++            // ignore
++          }
++        }
++
++        if (request.endsWith('/')) {
++          try {
++            return pnpapi.resolveRequest(path.join(request, 'index'), options.basedir);
++          } catch (_) {
++            // ignore
++          }
++        } else {
++          try {
++            return pnpapi.resolveRequest(request, options.basedir);
++          } catch (_) {
++            // ignore
++          }
++        }
++      }
++    };
+ /** @deprecated since version 8. Use `require.resolve` instead. */
+ function setResolveHook(hook) {
+     _resolveHook = hook;

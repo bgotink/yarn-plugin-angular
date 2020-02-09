@@ -1,0 +1,31 @@
+{
+  "name": "@yarnpkg/plugin-angular",
+  "version": "0.0.0-PLACEHOLDER",
+  "scripts": {
+    "preversion": "run build && cp bundles/@yarnpkg/plugin-angular.js bin/@yarnpkg",
+    "build": "builder build plugin",
+    "generate-patches": "node patches/generate-patches"
+  },
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "@yarnpkg/core": "^2.0.0-rc.21",
+    "@yarnpkg/fslib": "^2.0.0-rc.15",
+    "@yarnpkg/plugin-patch": "^2.0.0-rc.4",
+    "semver": "^7.1.2"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.1.0",
+    "@yarnpkg/builder": "2.0.0-rc.18",
+    "@yarnpkg/cli": "^2.0.0-rc.28",
+    "@yarnpkg/core": "2.0.0-rc.21",
+    "@yarnpkg/fslib": "^2.0.0-rc.15",
+    "@yarnpkg/plugin-patch": "^2.0.0-rc.4",
+    "@yarnpkg/pnpify": "^2.0.0-rc.17",
+    "husky": "^4.2.1",
+    "prettier": "^1.19.1",
+    "prettier-plugin-json-formats": "^0.2.0",
+    "pretty-quick": "^2.0.1",
+    "semver": "^7.1.2",
+    "typescript": "^3.7.5"
+  }
+}
