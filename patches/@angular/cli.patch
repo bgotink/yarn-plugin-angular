@@ -19,7 +19,7 @@ diff --git a/commands/version-impl.js b/commands/version-impl.js
 +                acc[name] = require(require.resolve(`${name}/package.json`, {paths: [this.workspace.root]})).version;
 +            } catch (_) {
 +                try {
-+                    acc[name] = require(path.resolve(cliNodeModules, moduleName, 'package.json')).version + ' (cli-only)';
++                    acc[name] = require(`${name}/package.json`).version + ' (cli-only)';
 +                } catch (_) {
 +                    acc[name] = '<error>';
 +                }

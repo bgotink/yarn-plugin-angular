@@ -167,7 +167,7 @@ module.exports = {
             'pnp-webpack-plugin': '^1.6.0'
           },
           peerDependencies: {
-            karma: "~4.4.1"
+            karma: '~4.4.1'
           }
         });
       },
@@ -246,7 +246,7 @@ module.exports = {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = "diff --git a/commands/version-impl.js b/commands/version-impl.js\n--- a/commands/version-impl.js\n+++ b/commands/version-impl.js\n@@ -45,7 +45,7 @@ class VersionCommand extends command_1.Command {\n             ...Object.keys((projPkg && projPkg['dependencies']) || {}),\n             ...Object.keys((projPkg && projPkg['devDependencies']) || {}),\n         ];\n-        if (packageRoot != null) {\n+        if (false && packageRoot != null) {\n             // Add all node_modules and node_modules/@*/*\n             const nodePackageNames = fs.readdirSync(packageRoot).reduce((acc, name) => {\n                 if (name.startsWith('@')) {\n@@ -63,7 +63,15 @@ class VersionCommand extends command_1.Command {\n             if (name in acc) {\n                 return acc;\n             }\n-            acc[name] = this.getVersion(name, packageRoot, maybeNodeModules);\n+            try {\n+                acc[name] = require(require.resolve(`${name}/package.json`, {paths: [this.workspace.root]})).version;\n+            } catch (_) {\n+                try {\n+                    acc[name] = require(path.resolve(cliNodeModules, moduleName, 'package.json')).version + ' (cli-only)';\n+                } catch (_) {\n+                    acc[name] = '<error>';\n+                }\n+            }\n             return acc;\n         }, {});\n         let ngCliVersion = pkg.version;\n";
+  exports.default = "diff --git a/commands/version-impl.js b/commands/version-impl.js\n--- a/commands/version-impl.js\n+++ b/commands/version-impl.js\n@@ -45,7 +45,7 @@ class VersionCommand extends command_1.Command {\n             ...Object.keys((projPkg && projPkg['dependencies']) || {}),\n             ...Object.keys((projPkg && projPkg['devDependencies']) || {}),\n         ];\n-        if (packageRoot != null) {\n+        if (false && packageRoot != null) {\n             // Add all node_modules and node_modules/@*/*\n             const nodePackageNames = fs.readdirSync(packageRoot).reduce((acc, name) => {\n                 if (name.startsWith('@')) {\n@@ -63,7 +63,15 @@ class VersionCommand extends command_1.Command {\n             if (name in acc) {\n                 return acc;\n             }\n-            acc[name] = this.getVersion(name, packageRoot, maybeNodeModules);\n+            try {\n+                acc[name] = require(require.resolve(`${name}/package.json`, {paths: [this.workspace.root]})).version;\n+            } catch (_) {\n+                try {\n+                    acc[name] = require(`${name}/package.json`).version + ' (cli-only)';\n+                } catch (_) {\n+                    acc[name] = '<error>';\n+                }\n+            }\n             return acc;\n         }, {});\n         let ngCliVersion = pkg.version;\n";
 
   /***/ })
   /******/ ]);
