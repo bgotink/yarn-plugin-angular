@@ -6,6 +6,9 @@
 # Mark .pnp.js as binary to prevent git from trying to merge it
 /.pnp.js                binary linguist-generated
 
+# Mark bin as generated to remove it from language overview
+/bin                    linguist-generated
+
 # Set the language for these files to json5 to ensure GitHub doesn't show the comments as errors
 /.vscode/*.json         linguist-language=JSON5
 
