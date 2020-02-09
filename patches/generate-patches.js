@@ -21,6 +21,6 @@ for (const scope of xfs.readdirSync(ROOT)) {
     const content = JSON.stringify(xfs.readFileSync(ppath.join(ROOT, localPath), 'utf8'));
 
     xfs.mkdirpSync(ppath.dirname(targetPath));
-    xfs.writeFileSync(targetPath, `export default ${content};`);
+    xfs.writeFileSync(targetPath, `export default ${content};\n`);
   }
 }
