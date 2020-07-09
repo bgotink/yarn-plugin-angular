@@ -8,7 +8,7 @@ happens, this plugin patches the necessary packages to make it work.
 ## Install
 
 ```bash
-yarn plugin import https://github.com/bgotink/yarn-plugin-angular/raw/master/bin/%40yarnpkg/plugin-angular.js
+yarn plugin import https://github.com/bgotink/yarn-plugin-angular/raw/latest/bin/%40yarnpkg/plugin-angular.js
 ```
 
 ## Status
