@@ -664,7 +664,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@yarnpkg/cli@npm:^2.1.0":
+"@yarnpkg/cli@npm:^2.1.0, @yarnpkg/cli@npm:^2.1.1":
   version: 2.1.1
   resolution: "@yarnpkg/cli@npm:2.1.1"
   dependencies:
@@ -781,6 +781,7 @@ __metadata:
   dependencies:
     "@types/semver": ^7.3.1
     "@yarnpkg/builder": ^2.1.0
+    "@yarnpkg/cli": ^2.1.1
     "@yarnpkg/core": ^2.1.1
     "@yarnpkg/fslib": ^2.1.0
     "@yarnpkg/plugin-patch": ^2.1.0
