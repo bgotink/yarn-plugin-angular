@@ -71,18 +71,63 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
 
     registerPackageExtensions: async (configuration, registerPackageExtension) => {
       registerPackageExtension(
+        structUtils.makeDescriptor(structUtils.makeIdent('angular', 'core'), '^8.0.0'),
+        {
+          peerDependencies: {
+            '@angular/compiler': '^8.0.0',
+          },
+          peerDependenciesMeta: {
+            '@angular/compiler': {optional: true},
+          },
+        },
+      );
+
+      registerPackageExtension(
         structUtils.makeDescriptor(structUtils.makeIdent('angular-devkit', 'build-angular'), '*'),
         {
           dependencies: {
+            '@types/karma': '^4.4.3',
+            '@types/node': '^14.0.20',
             'pnp-webpack-plugin': '^1.6.0',
           },
           peerDependencies: {
+            '@angular/core': '*',
             karma: '~4.4.1',
             protractor: '~5.4.3',
           },
           peerDependenciesMeta: {
             karma: {optional: true},
             protractor: {optional: true},
+          },
+        },
+      );
+
+      registerPackageExtension(
+        structUtils.makeDescriptor(structUtils.makeIdent('angular-devkit', 'core'), '*'),
+        {
+          dependencies: {
+            '@types/node': '^14.0.20',
+          },
+        },
+      );
+
+      registerPackageExtension(
+        structUtils.makeDescriptor(structUtils.makeIdent('angular-devkit', 'schematics'), '*'),
+        {
+          dependencies: {
+            '@types/node': '^14.0.20',
+          },
+        },
+      );
+
+      registerPackageExtension(
+        structUtils.makeDescriptor(structUtils.makeIdent('ngtools', 'webpack'), '^8.0.0'),
+        {
+          dependencies: {
+            '@types/node': '^14.0.20',
+          },
+          peerDependencies: {
+            '@angular/core': '^8.0.0',
           },
         },
       );
