@@ -1,0 +1,18 @@
+diff --git a/lib/middleware/karma.js b/lib/middleware/karma.js
+index c48332d12..ef4dda95f 100644
+semver exclusivity < 5.1.1
+--- a/lib/middleware/karma.js
++++ b/lib/middleware/karma.js
+@@ -220,10 +220,10 @@ function createKarmaMiddleware (
+           }) : []
+
+           return data
+-            .replace('%SCRIPTS%', scriptTags.join('\n'))
++            .replace('%SCRIPTS%', () => scriptTags.join('\n'))
+             .replace('%CLIENT_CONFIG%', 'window.__karma__.config = ' + JSON.stringify(client) + ';\n')
+             .replace('%SCRIPT_URL_ARRAY%', 'window.__karma__.scriptUrls = ' + JSON.stringify(scriptUrls) + ';\n')
+-            .replace('%MAPPINGS%', 'window.__karma__.files = {\n' + mappings.join(',\n') + '\n};\n')
++            .replace('%MAPPINGS%', () => 'window.__karma__.files = {\n' + mappings.join(',\n') + '\n};\n')
+             .replace('\n%X_UA_COMPATIBLE%', getXUACompatibleMetaElement(request.url))
+         })
+       })

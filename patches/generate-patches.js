@@ -7,18 +7,25 @@ const TARGET = ppath.join(ROOT, '../src/patches');
 
 xfs.removeSync(TARGET);
 
-for (const scope of xfs.readdirSync(ROOT)) {
-  const dir = ppath.join(ROOT, scope);
+const folders = new Set([ROOT]);
 
-  if (!xfs.statSync(dir).isDirectory()) {
-    continue;
-  }
+for (const folder of folders) {
+  for (const entry of xfs.readdirSync(folder)) {
+    const resolvedEntry = ppath.join(folder, entry);
 
-  for (const filename of xfs.readdirSync(dir)) {
-    const localPath = ppath.join(scope, filename);
+    if (xfs.statSync(resolvedEntry).isDirectory()) {
+      folders.add(resolvedEntry);
+      continue;
+    }
+
+    if (ppath.extname(resolvedEntry) !== '.patch') {
+      continue;
+    }
+
+    const localPath = ppath.relative(ROOT, resolvedEntry);
     const targetPath = ppath.join(TARGET, `${localPath}.ts`);
 
-    const content = JSON.stringify(xfs.readFileSync(ppath.join(ROOT, localPath), 'utf8'));
+    const content = JSON.stringify(xfs.readFileSync(resolvedEntry, 'utf8'));
 
     xfs.mkdirpSync(ppath.dirname(targetPath));
     xfs.writeFileSync(targetPath, `export default ${content};\n`);

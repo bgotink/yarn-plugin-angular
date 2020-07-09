@@ -5,6 +5,7 @@ import {Hooks as PatchHooks} from '@yarnpkg/plugin-patch';
 import angularDevkitBuildAngularPatch from './patches/@angular-devkit/build-angular.patch';
 import angularDevkitCorePatch from './patches/@angular-devkit/core.patch';
 import angularCliPatch from './patches/@angular/cli.patch';
+import karmaPatch from './patches/karma.patch';
 
 const PATCHES = new Map([
   [
@@ -13,6 +14,7 @@ const PATCHES = new Map([
   ],
   [structUtils.makeIdent('angular-devkit', 'core').identHash, angularDevkitCorePatch],
   [structUtils.makeIdent('angular', 'cli').identHash, angularCliPatch],
+  [structUtils.makeIdent(null, 'karma').identHash, karmaPatch],
 ]);
 
 const TAG = 'ng/';
