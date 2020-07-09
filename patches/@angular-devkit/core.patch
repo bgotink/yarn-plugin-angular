@@ -3,7 +3,7 @@ index 41c5a81..77cfbe4 100644
 semver exclusivity >=8.3.13
 --- a/node/resolve.js
 +++ b/node/resolve.js
-@@ -66,7 +66,80 @@ function _getGlobalNodeModules() {
+@@ -66,7 +66,81 @@ function _getGlobalNodeModules() {
          ? path.resolve(globalPrefix || '', 'lib', 'node_modules')
          : path.resolve(globalPrefix || '', 'node_modules');
  }
@@ -41,7 +41,7 @@ semver exclusivity >=8.3.13
 +          const localDir = path.dirname(caller);
 +          if (localDir !== options.basedir) {
 +            try {
-+              return resolveHook(x, {
++              return resolveHook(request, {
 +                ...options,
 +                checkLocal: false,
 +                basedir: localDir,
@@ -59,9 +59,10 @@ semver exclusivity >=8.3.13
 +      throw new ModuleNotFoundException(request, basePath);
 +
 +      function resolve(request, options) {
++        const issuer = path.join(options.basedir, 'synthetic.file');
 +        if (options.resolvePackageJson) {
 +          try {
-+            return pnpapi.resolveRequest(path.join(request, 'package.json'), options.basedir);
++            return pnpapi.resolveRequest(path.join(request, 'package.json'), issuer);
 +          } catch (_) {
 +            // ignore
 +          }
@@ -69,13 +70,13 @@ semver exclusivity >=8.3.13
 +
 +        if (request.endsWith('/')) {
 +          try {
-+            return pnpapi.resolveRequest(path.join(request, 'index'), options.basedir);
++            return pnpapi.resolveRequest(path.join(request, 'index'), issuer);
 +          } catch (_) {
 +            // ignore
 +          }
 +        } else {
 +          try {
-+            return pnpapi.resolveRequest(request, options.basedir);
++            return pnpapi.resolveRequest(request, issuer);
 +          } catch (_) {
 +            // ignore
 +          }
