@@ -87,11 +87,15 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
       );
 
       registerPackageExtension(
-        structUtils.makeDescriptor(structUtils.makeIdent('angular-devkit', 'build-angular'), '*'),
+        structUtils.makeDescriptor(
+          structUtils.makeIdent('angular-devkit', 'build-angular'),
+          '< 0.1000.0',
+        ),
         {
           dependencies: {
             '@types/karma': '^4.4.3',
             '@types/node': '^14.0.20',
+            'pnp-webpack-plugin': '^1.6.0',
           },
           peerDependencies: {
             '@angular/core': '*',
@@ -106,13 +110,20 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
       );
 
       registerPackageExtension(
-        structUtils.makeDescriptor(
-          structUtils.makeIdent('angular-devkit', 'build-angular'),
-          '< 0.1000.0',
-        ),
+        structUtils.makeDescriptor(structUtils.makeIdent('angular-devkit', 'build-angular'), '*'),
         {
           dependencies: {
-            'pnp-webpack-plugin': '^1.6.0',
+            '@types/karma': '^4.4.3',
+            '@types/node': '^14.0.20',
+          },
+          peerDependencies: {
+            '@angular/core': '*',
+            karma: '~4.4.1',
+            protractor: '~5.4.3',
+          },
+          peerDependenciesMeta: {
+            karma: {optional: true},
+            protractor: {optional: true},
           },
         },
       );
