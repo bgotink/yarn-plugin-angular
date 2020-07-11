@@ -5,6 +5,7 @@ import {Hooks as PatchHooks} from '@yarnpkg/plugin-patch';
 import angularDevkitBuildAngularPatch from './patches/@angular-devkit/build-angular.patch';
 import angularDevkitCorePatch from './patches/@angular-devkit/core.patch';
 import angularCliPatch from './patches/@angular/cli.patch';
+import ngtoolsWebpackPatch from './patches/@ngtools/webpack.patch';
 import karmaPatch from './patches/karma.patch';
 
 const PATCHES = new Map([
@@ -14,6 +15,7 @@ const PATCHES = new Map([
   ],
   [structUtils.makeIdent('angular-devkit', 'core').identHash, angularDevkitCorePatch],
   [structUtils.makeIdent('angular', 'cli').identHash, angularCliPatch],
+  [structUtils.makeIdent('ngtools', 'webpack').identHash, ngtoolsWebpackPatch],
   [structUtils.makeIdent(null, 'karma').identHash, karmaPatch],
 ]);
 
@@ -90,7 +92,6 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
           dependencies: {
             '@types/karma': '^4.4.3',
             '@types/node': '^14.0.20',
-            'pnp-webpack-plugin': '^1.6.0',
           },
           peerDependencies: {
             '@angular/core': '*',
@@ -100,6 +101,18 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
           peerDependenciesMeta: {
             karma: {optional: true},
             protractor: {optional: true},
+          },
+        },
+      );
+
+      registerPackageExtension(
+        structUtils.makeDescriptor(
+          structUtils.makeIdent('angular-devkit', 'build-angular'),
+          '< 0.1000.0',
+        ),
+        {
+          dependencies: {
+            'pnp-webpack-plugin': '^1.6.0',
           },
         },
       );

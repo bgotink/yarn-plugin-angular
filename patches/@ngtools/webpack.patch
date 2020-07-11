@@ -1,0 +1,102 @@
+diff --git a/src/compiler_host.js b/src/compiler_host.js
+index 832d7d8..f06fc1f 100644
+--- a/src/compiler_host.js
++++ b/src/compiler_host.js
+@@ -11,7 +11,10 @@ const core_1 = require("@angular-devkit/core");
+ const fs_1 = require("fs");
+ const ts = require("typescript");
+ const utils_1 = require("./utils");
++const {resolveVirtualSource} = require('./pnp-virtual-files');
+ const dev = Math.floor(Math.random() * 10000);
++
++
+ class WebpackCompilerHost {
+     constructor(_options, basePath, host, cacheSourceFiles, directTemplateLoading = false, ngccProcessor, moduleResolutionCache) {
+         this._options = _options;
+@@ -52,7 +55,7 @@ class WebpackCompilerHost {
+         return core_1.getSystemPath(core_1.normalize(path));
+     }
+     resolve(path) {
+-        const p = core_1.normalize(path);
++        const p = core_1.normalize(resolveVirtualSource(path));
+         if (core_1.isAbsolute(p)) {
+             return p;
+         }
+diff --git a/src/pnp-virtual-files.js b/src/pnp-virtual-files.js
+new file mode 100644
+index 0000000..eec7c1b
+--- /dev/null
++++ b/src/pnp-virtual-files.js
+@@ -0,0 +1,72 @@
++const ppath = require('path').posix;
++
++const NUMBER_REGEXP = /^[0-9]+$/;
++const VIRTUAL_REGEXP = /^(\/(?:[^/]+\/)*?\$\$virtual)((?:\/((?:[^/]+-)?[a-f0-9]+)(?:\/([^/]+))?)?((?:\/.*)?))$/;
++function resolveVirtual(p) {
++  const match = p.match(VIRTUAL_REGEXP);
++  if (!match || (!match[3] && match[5]))
++    return p;
++
++  const target = ppath.dirname(match[1]);
++  if (!match[3] || !match[4])
++    return target;
++
++  const isnum = NUMBER_REGEXP.test(match[4]);
++  if (!isnum)
++    return p;
++
++  const depth = Number(match[4]);
++  const backstep = `../`.repeat(depth);
++  const subpath = (match[5] || `.`);
++
++  return resolveVirtual(ppath.join(target, backstep, subpath));
++}
++
++const WINDOWS_PATH_REGEXP = /^([a-zA-Z]:.*)$/;
++const UNC_WINDOWS_PATH_REGEXP = /^\\\\(\.\\)?(.*)$/;
++
++const PORTABLE_PATH_REGEXP = /^\/([a-zA-Z]:.*)$/;
++const UNC_PORTABLE_PATH_REGEXP = /^\/unc\/(\.dot\/)?(.*)$/;
++
++// Path should look like "/N:/berry/scripts/plugin-pack.js"
++// And transform to "N:\berry\scripts\plugin-pack.js"
++function fromPortablePath(p) {
++  if (process.platform !== `win32`)
++    return p;
++
++  if (p.match(PORTABLE_PATH_REGEXP))
++    p = p.replace(PORTABLE_PATH_REGEXP, `$1`);
++  else if (p.match(UNC_PORTABLE_PATH_REGEXP))
++    p = p.replace(UNC_PORTABLE_PATH_REGEXP, (match, p1, p2) => `\\\\${p1 ? `.\\` : ``}${p2}`);
++  else
++    return p;
++
++  return p.replace(/\//g, `\\`);
++}
++
++// Path should look like "N:/berry/scripts/plugin-pack.js"
++// And transform to "/N:/berry/scripts/plugin-pack.js"
++function toPortablePath(p) {
++  if (process.platform !== `win32`)
++    return p;
++
++  if (p.match(WINDOWS_PATH_REGEXP))
++    p = p.replace(WINDOWS_PATH_REGEXP, `/$1`);
++  else if (p.match(UNC_WINDOWS_PATH_REGEXP))
++    p = p.replace(UNC_WINDOWS_PATH_REGEXP, (_match, p1, p2) => `/unc/${p1 ? `.dot/` : ``}${p2}`);
++
++  return p.replace(/\\/g, `/`);
++}
++
++exports.resolveVirtualSource = resolveVirtualSource;
++function resolveVirtualSource(p) {
++  const portableP = toPortablePath(p);
++  const resolved = resolveVirtual(portableP);
++
++  if (/\/.yarn\//.test(resolved)) {
++    // don't resolve virtuals, this is an actual dependency
++    return p;
++  }
++
++  return portableP === p ? resolved : fromPortablePath(resolved);
++}

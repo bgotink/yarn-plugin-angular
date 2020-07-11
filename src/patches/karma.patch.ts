@@ -1,1 +1,9 @@
-export default "diff --git a/lib/middleware/karma.js b/lib/middleware/karma.js\nindex c48332d12..ef4dda95f 100644\nsemver exclusivity < 5.1.1\n--- a/lib/middleware/karma.js\n+++ b/lib/middleware/karma.js\n@@ -220,10 +220,10 @@ function createKarmaMiddleware (\n           }) : []\n\n           return data\n-            .replace('%SCRIPTS%', scriptTags.join('\\n'))\n+            .replace('%SCRIPTS%', () => scriptTags.join('\\n'))\n             .replace('%CLIENT_CONFIG%', 'window.__karma__.config = ' + JSON.stringify(client) + ';\\n')\n             .replace('%SCRIPT_URL_ARRAY%', 'window.__karma__.scriptUrls = ' + JSON.stringify(scriptUrls) + ';\\n')\n-            .replace('%MAPPINGS%', 'window.__karma__.files = {\\n' + mappings.join(',\\n') + '\\n};\\n')\n+            .replace('%MAPPINGS%', () => 'window.__karma__.files = {\\n' + mappings.join(',\\n') + '\\n};\\n')\n             .replace('\\n%X_UA_COMPATIBLE%', getXUACompatibleMetaElement(request.url))\n         })\n       })\n";
+/* eslint-disable */
+import {brotliDecompressSync} from 'zlib';
+
+export default brotliDecompressSync(
+  Buffer.from(
+    'G60DIKwGbPcKEyBSks3WsaWGmQHamM97MKQnS/XVDN6adUKBkXP6GPUDTJn8rnIELY8pq8r6kqWEq0+CpL72V8kU06FrAsi9Qqc9RtkDVQokJsY2nE18Jq9Qu8AfvKPqd6/zHCxbrG+IYreOeeI/6RldMn4bXfYRt7kivsgS4vwFiWLIspSKEueTK2kamWoOMQVNUchl+0d2QZyEJ65vbzhQnRyJsSzuXEIpxf4aBGAlSWAoQHfhsyRtMYZgeg+I4Qt6aBMsFwssTOfkNC5WEObpERaoSSGk608eW4FMPZBAasg/2vigDy3pEPrwonYHrvcKEGD/mJjzo4qRF/Et3laXS6YxlkvOEOu7aIH+RB9M5Jvr/N0WoqEOKFo2FtJlJWrApjTMGdAw8s/o7+6KGLkligrC4n9IucPRUO3Wd/GdHQZcOSXYjdEjKMbs8J8hUowTyoYDwMmHRtHLe43gHhTZbaQwoFbYR/oL35avA+5+2QkD4UNkAA==',
+    'base64',
+  ),
+).toString();

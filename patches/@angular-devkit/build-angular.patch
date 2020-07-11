@@ -1,5 +1,5 @@
 diff --git a/src/angular-cli-files/models/webpack-configs/common.js b/src/angular-cli-files/models/webpack-configs/common.js
-semver exclusivity >= 0.900.0
+semver exclusivity >= 0.900.0 < 0.1000.0
 --- a/src/angular-cli-files/models/webpack-configs/common.js
 +++ b/src/angular-cli-files/models/webpack-configs/common.js
 @@ -385,6 +385,9 @@ function getCommonConfig(wco) {
