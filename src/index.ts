@@ -140,6 +140,7 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
         {
           dependencies: {
             '@types/node': '^14.0.20',
+            '@yarnpkg/fslib': '^2.1.0',
           },
           peerDependencies: {
             '@angular/core': '^8.0.0',
