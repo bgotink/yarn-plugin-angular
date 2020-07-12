@@ -1,30 +1,29 @@
 diff --git a/src/compiler_host.js b/src/compiler_host.js
-index 832d7d8..f06fc1f 100644
 --- a/src/compiler_host.js
 +++ b/src/compiler_host.js
-@@ -11,7 +11,16 @@ const core_1 = require("@angular-devkit/core");
+@@ -12,7 +12,16 @@ const core_1 = require("@angular-devkit/core");
  const fs_1 = require("fs");
  const ts = require("typescript");
  const utils_1 = require("./utils");
-+const {VirtualFS, npath} = require('@yarnpkg/fslib');
++const {VirtualFS} = require('@yarnpkg/fslib');
  const dev = Math.floor(Math.random() * 10000);
 +
-+function resolveVirtualSource(p) {
-+  const portableP = npath.toPortablePath(p);
-+  const resolved = VirtualFS.resolveVirtual(portableP);
-+  if (/\/.yarn\//.test(resolved)) return p;
-+  return (portableP === p) ? resolved : npath.fromPortablePath(resolved);
++function resolveVirtualSource(base, p) {
++  // Angular already normalized the paths into a unix-like format, so we don't have to convert
++  const resolved = VirtualFS.resolveVirtual(p);
++  if (/(?:^|\/).yarn\//.test(core_1.isAbsolute(resolved) ? core_1.relative(base, resolved) : resolved)) return p;
++  return resolved;
 +}
 +
  class WebpackCompilerHost {
      constructor(_options, basePath, host, cacheSourceFiles, directTemplateLoading = false, ngccProcessor, moduleResolutionCache) {
          this._options = _options;
-@@ -52,7 +55,7 @@ class WebpackCompilerHost {
+@@ -53,7 +62,7 @@ class WebpackCompilerHost {
          return core_1.getSystemPath(core_1.normalize(path));
      }
      resolve(path) {
 -        const p = core_1.normalize(path);
-+        const p = core_1.normalize(resolveVirtualSource(path));
++        const p = resolveVirtualSource(this._basePath, core_1.normalize(path));
          if (core_1.isAbsolute(p)) {
              return p;
          }
