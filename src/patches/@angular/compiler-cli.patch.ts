@@ -1,0 +1,9 @@
+/* eslint-disable */
+import {brotliDecompressSync} from 'zlib';
+
+export default brotliDecompressSync(
+  Buffer.from(
+    'GygHAJyDcZvc6JPKAide7JTJ/RFOycg5fYz6EuZqNxZ2lgqE43nb+Rd68doFYZfh9GQt2jcpU1QjKFdl4CGL7TsKn/97Zxb5O4GEEd+3Gnsd70Tv/+ayMS2QiYkEpv+kIl0PoEy3HfhjkEYRDCNOB7i0in2f9p1Pu/do+WnYUxJuG7kP05nbw/t5nvRh+c6LjhLa02HFzzLGw6CY+oi2HBjjr48HDGt357TXserjKLE2qZRgfUjyvCjIvilyosFn394WrXnivc5QZcYbXavC6mhF606xxxpwckY5h/f6S+tzGiyc4/KKXrps3zRsC978qmMEHApxoi0BaG+JSTtgiO2Ut0unEdYOE02YpXQOiXuXrdjWXmLKlglKUQswPTYYbo4QhaPcgf5TaGhKcoPXgSjaa/GJtRK92Gf1uMJXoSkceSE3v/ss/D8pA8arouDo9vC60Z+8hUHo8UNeJ9lfdlZDEg6pb9uZyU7kCxgGamyXq3AGsjxBO3cMbzPIKjP5JylnXs91rzzQHe50zPx8azHXT5rhx80yD3u+4WNntj4fkq6eEZ7z7cS/yxiWmREBYn23CVNLg2kBtaLs3xMkaXY1yngbkVkqgBysvVVK4N6vtkjxpVRKQiBaGMVFJczCf7CCotVR1v86lZ6+940GfoMDXtXv34GdsPWfJcpEgXMA',
+    'base64',
+  ),
+).toString();

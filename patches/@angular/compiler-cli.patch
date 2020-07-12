@@ -1,0 +1,36 @@
+diff --git a/ngcc/src/dependencies/module_resolver.js b/ngcc/src/dependencies/module_resolver.js
+semver exclusivity ^10
+--- a/ngcc/src/dependencies/module_resolver.js
++++ b/ngcc/src/dependencies/module_resolver.js
+@@ -133,18 +133,20 @@
+          */
+         ModuleResolver.prototype.resolveAsEntryPoint = function (moduleName, fromPath) {
+             var folder = fromPath;
+-            while (!file_system_1.isRoot(folder)) {
+-                folder = file_system_1.dirname(folder);
+-                if (folder.endsWith('node_modules')) {
+-                    // Skip up if the folder already ends in node_modules
+-                    folder = file_system_1.dirname(folder);
++            try {
++                const result = require.resolve(`${moduleName}/package.json`, {paths: [file_system_1.join(folder, '__synthetic__.js')]});
++                return new ResolvedExternalModule(file_system_1.dirname(result));
++            } catch (e) {
++                if (e.code !== 'MODULE_NOT_FOUND') {
++                    throw e;
+                 }
+-                var modulePath = file_system_1.resolve(folder, 'node_modules', moduleName);
+-                if (this.isEntryPoint(modulePath)) {
+-                    return new ResolvedExternalModule(modulePath);
+-                }
+-                else if (this.resolveAsRelativePath(modulePath, fromPath)) {
+-                    return new ResolvedDeepImport(modulePath);
++            }
++            try {
++                const result = require.resolve(`${moduleName}/`, {paths: [file_system_1.join(folder, '__synthetic__.js')]});
++                return new ResolvedDeepImport(file_system_1.dirname(result));
++            } catch (e) {
++                if (e.code !== 'MODULE_NOT_FOUND') {
++                    throw e;
+                 }
+             }
+             return null;
