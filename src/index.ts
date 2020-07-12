@@ -147,14 +147,14 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
       );
 
       registerPackageExtension(
-        structUtils.makeDescriptor(structUtils.makeIdent('ngtools', 'webpack'), '^8.0.0'),
+        structUtils.makeDescriptor(structUtils.makeIdent('ngtools', 'webpack'), '*'),
         {
           dependencies: {
             '@types/node': '^14.0.20',
             '@yarnpkg/fslib': '^2.1.0',
           },
           peerDependencies: {
-            '@angular/core': '^8.0.0',
+            '@angular/core': '*',
           },
         },
       );
