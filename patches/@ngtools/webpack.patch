@@ -27,12 +27,3 @@ diff --git a/src/compiler_host.js b/src/compiler_host.js
          if (core_1.isAbsolute(p)) {
              return p;
          }
-@@ -261,7 +270,7 @@ class WebpackCompilerHost {
-             }
-             const content = this.readFile(fileName);
-             if (content !== undefined) {
--                const sf = ts.createSourceFile(utils_1.workaroundResolve(fileName), content, languageVersion, true);
-+                const sf = ts.createSourceFile(utils_1.workaroundResolve(resolveVirtualSource(this._basePath, fileName)), content, languageVersion, true);
-                 if (this.cacheSourceFiles) {
-                     this._sourceFileCache.set(p, sf);
-                 }

@@ -8,6 +8,7 @@ import angularCliPatch from './patches/@angular/cli.patch';
 import angularCompilerCliPatch from './patches/@angular/compiler-cli.patch';
 import ngtoolsWebpackPatch from './patches/@ngtools/webpack.patch';
 import karmaPatch from './patches/karma.patch';
+import typescriptPatch from './patches/typescript.patch';
 
 const PATCHES = new Map([
   [
@@ -19,6 +20,7 @@ const PATCHES = new Map([
   [structUtils.makeIdent('angular', 'compiler-cli').identHash, angularCompilerCliPatch],
   [structUtils.makeIdent('ngtools', 'webpack').identHash, ngtoolsWebpackPatch],
   [structUtils.makeIdent(null, 'karma').identHash, karmaPatch],
+  [structUtils.makeIdent(null, 'typescript').identHash, typescriptPatch],
 ]);
 
 const TAG = 'ng/';

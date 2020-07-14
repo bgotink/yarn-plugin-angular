@@ -1,0 +1,79 @@
+diff --git a/lib/typescript.js b/lib/typescript.js
+semver exclusivity >= 3.9.0
+--- a/lib/typescript.js
++++ b/lib/typescript.js
+@@ -6769,7 +6769,32 @@ var ts;
+         var nonCanonicalizedPath = isRootedDiskPath(fileName)
+             ? normalizePath(fileName)
+             : getNormalizedAbsolutePath(fileName, basePath);
+-        return getCanonicalFileName(nonCanonicalizedPath);
++        var canonilizedPath = getCanonicalFileName(nonCanonicalizedPath);
++        var devirtualizedPath = resolveVirtual(canonilizedPath);
++        return YARN.test(devirtualizedPath) ? canonilizedPath : devirtualizedPath;
++    }
++    var YARN = /(?:^|\/).yarn\//;
++    var NUMBER_REGEXP = /^[0-9]+$/;
++    var VIRTUAL_REGEXP = /^(\/(?:[^/]+\/)*?\$\$virtual)((?:\/((?:[^/]+-)?[a-f0-9]+)(?:\/([^/]+))?)?((?:\/.*)?))$/;
++    var {posix} = require('path');
++    function resolveVirtual(p) {
++      var match = p.match(VIRTUAL_REGEXP);
++      if (!match || (!match[3] && match[5]))
++        return p;
++
++      var target = posix.dirname(match[1]);
++      if (!match[3] || !match[4])
++        return target;
++
++      var isnum = NUMBER_REGEXP.test(match[4]);
++      if (!isnum)
++        return p;
++
++      var depth = Number(match[4]);
++      var backstep = '../'.repeat(depth);
++      var subpath = match[5] || '.';
++
++      return resolveVirtual(posix.join(target, backstep, subpath));
+     }
+     ts.toPath = toPath;
+     function normalizePathAndParts(path) {
+@@ -38850,6 +38850,10 @@ var ts;
+     function loadPnpPackageResolution(packageName, containingDirectory) {
+         try {
+             var resolution = getPnpApi().resolveToUnqualified(packageName, containingDirectory + "/", { considerBuiltins: false });
++            var unvirtualised = resolveVirtual(resolution);
++            if (!YARN.test(unvirtualised)) {
++                resolution = unvirtualised;
++            }
+             return ts.normalizeSlashes(resolution);
+         }
+         catch (_a) {
+@@ -38860,6 +38880,29 @@ var ts;
+             return toSearchResult(resolved);
+         }
+     }
++    var YARN = /(?:^|\/).yarn\//;
++    var NUMBER_REGEXP = /^[0-9]+$/;
++    var VIRTUAL_REGEXP = /^(\/(?:[^/]+\/)*?\$\$virtual)((?:\/((?:[^/]+-)?[a-f0-9]+)(?:\/([^/]+))?)?((?:\/.*)?))$/;
++    var {posix} = require('path');
++    function resolveVirtual(p) {
++      var match = p.match(VIRTUAL_REGEXP);
++      if (!match || (!match[3] && match[5]))
++        return p;
++
++      var target = posix.dirname(match[1]);
++      if (!match[3] || !match[4])
++        return target;
++
++      var isnum = NUMBER_REGEXP.test(match[4]);
++      if (!isnum)
++        return p;
++
++      var depth = Number(match[4]);
++      var backstep = '../'.repeat(depth);
++      var subpath = match[5] || '.';
++
++      return resolveVirtual(posix.join(target, backstep, subpath));
++    }
+ })(ts || (ts = {}));
+ /* @internal */
+ var ts;
