@@ -171,6 +171,15 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
           },
         },
       );
+
+      registerPackageExtension(
+        structUtils.makeDescriptor(structUtils.makeIdent(null, 'webpack'), '< 5.0.0'),
+        {
+          dependencies: {
+            events: '^3.0.0',
+          },
+        },
+      );
     },
 
     /**
