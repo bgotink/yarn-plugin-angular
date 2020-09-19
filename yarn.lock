@@ -258,6 +258,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bgotink/yarn-plugin-angular@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@bgotink/yarn-plugin-angular@workspace:."
+  dependencies:
+    "@types/semver": ^7.3.1
+    "@yarnpkg/builder": ^2.1.0
+    "@yarnpkg/cli": ^2.1.1
+    "@yarnpkg/core": ^2.1.1
+    "@yarnpkg/fslib": ^2.1.0
+    "@yarnpkg/plugin-patch": ^2.1.0
+    "@yarnpkg/pnpify": ^2.1.0
+    husky: ^4.2.5
+    prettier: ^2.0.5
+    prettier-plugin-json-formats: ^0.3.0
+    pretty-quick: ^2.0.1
+    semver: ^7.3.2
+    typescript: ^3.9.6
+  peerDependencies:
+    "@yarnpkg/core": ^2.1.1
+    "@yarnpkg/fslib": ^2.1.0
+    "@yarnpkg/plugin-patch": ^2.1.0
+    semver: ^7.3.2
+  dependenciesMeta:
+    fsevents:
+      built: false
+      unplugged: false
+    nan:
+      unplugged: false
+    node-gyp:
+      unplugged: false
+    node-pre-gyp:
+      unplugged: false
+  languageName: unknown
+  linkType: soft
+
 "@nodelib/fs.scandir@npm:2.1.3":
   version: 2.1.3
   resolution: "@nodelib/fs.scandir@npm:2.1.3"
@@ -774,41 +809,6 @@ __metadata:
   checksum: 3cd4e354358ec1562c07872a1132c6eb2817ec3521c89043071b0b2d3fc03946176815f31e930ae24a689321584bf204c7a0fe3a347dc17d359a34062ade6774
   languageName: node
   linkType: hard
-
-"@yarnpkg/plugin-angular@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@yarnpkg/plugin-angular@workspace:."
-  dependencies:
-    "@types/semver": ^7.3.1
-    "@yarnpkg/builder": ^2.1.0
-    "@yarnpkg/cli": ^2.1.1
-    "@yarnpkg/core": ^2.1.1
-    "@yarnpkg/fslib": ^2.1.0
-    "@yarnpkg/plugin-patch": ^2.1.0
-    "@yarnpkg/pnpify": ^2.1.0
-    husky: ^4.2.5
-    prettier: ^2.0.5
-    prettier-plugin-json-formats: ^0.3.0
-    pretty-quick: ^2.0.1
-    semver: ^7.3.2
-    typescript: ^3.9.6
-  peerDependencies:
-    "@yarnpkg/core": ^2.1.1
-    "@yarnpkg/fslib": ^2.1.0
-    "@yarnpkg/plugin-patch": ^2.1.0
-    semver: ^7.3.2
-  dependenciesMeta:
-    fsevents:
-      built: false
-      unplugged: false
-    nan:
-      unplugged: false
-    node-gyp:
-      unplugged: false
-    node-pre-gyp:
-      unplugged: false
-  languageName: unknown
-  linkType: soft
 
 "@yarnpkg/plugin-compat@npm:^2.1.0":
   version: 2.1.0

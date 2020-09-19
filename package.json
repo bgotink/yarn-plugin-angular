@@ -1,5 +1,5 @@
 {
-  "name": "@yarnpkg/plugin-angular",
+  "name": "@bgotink/yarn-plugin-angular",
   "version": "0.0.0-PLACEHOLDER",
   "scripts": {
     "preversion": "run build && cp bundles/@yarnpkg/plugin-angular.js bin/@yarnpkg",
