@@ -1,0 +1,13 @@
+diff --git a/package.json b/package.json
+index e950419c8c02473747ee80e704bbb6d873d2466a..5fc4aa1557e2d5ceeb8241bca9961a7435c220de 100644
+--- a/package.json
++++ b/package.json
+@@ -9,7 +9,7 @@
+ 		"email": "vdemedes@gmail.com",
+ 		"url": "https://github.com/vadimdemedes"
+ 	},
+-	"main": "build",
++	"main": "build/index.js",
+ 	"types": "build/index.d.ts",
+ 	"engines": {
+ 		"node": ">=10"
