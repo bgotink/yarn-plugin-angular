@@ -1,5 +1,5 @@
 import {Descriptor, miscUtils, structUtils} from '@yarnpkg/core';
-import {Comparator, gt, lt, Range, SemVer, valid, validRange} from 'own-semver';
+import {Comparator, gt, lt, minVersion, Range, SemVer, valid, validRange} from 'own-semver';
 
 const VERSION_ZERO = new SemVer('0.0.0');
 
@@ -308,11 +308,11 @@ export function simplifyRange(rangeStr: string): string {
 }
 
 export function getUpdatableRange(version: string, copyFrom?: string): string {
-  if (copyFrom == null) {
-    return version;
+  if (!valid(version) && validRange(version)) {
+    version = minVersion(version)?.format() ?? version;
   }
 
-  if (valid(copyFrom)) {
+  if (copyFrom == null || valid(copyFrom)) {
     return version;
   }
 

@@ -2,7 +2,8 @@ import {Hooks as CoreHooks, Plugin} from '@yarnpkg/core';
 import {Hooks as PatchHooks} from '@yarnpkg/plugin-patch';
 
 import ng from './commands/ng';
-import ngUpdateInteractive from './commands/ng/update';
+import ngUpdate from './commands/ng/update';
+import ngUpdateInteractive from './commands/ng/update-interactive';
 
 import {patchHooks} from './patches';
 import {cliHooks} from './cli';
@@ -15,7 +16,7 @@ const plugin: Plugin<CoreHooks & PatchHooks> = {
 
     registerPackageExtensions,
   },
-  commands: [ng, ngUpdateInteractive],
+  commands: [ng, ngUpdate, ngUpdateInteractive],
 };
 
 export default plugin;
