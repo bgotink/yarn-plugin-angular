@@ -15,11 +15,11 @@
     "react": "^16.13.1"
   },
   "peerDependencies": {
-    "@yarnpkg/core": "^2.2.2",
-    "@yarnpkg/fslib": "^2.2.1",
-    "@yarnpkg/plugin-essentials": "^2.2.0",
-    "@yarnpkg/plugin-npm": "^2.2.0",
-    "@yarnpkg/plugin-patch": "^2.1.1"
+    "@yarnpkg/core": "^2.3.1",
+    "@yarnpkg/fslib": "^2.3.0",
+    "@yarnpkg/plugin-essentials": "^2.3.2",
+    "@yarnpkg/plugin-npm": "^2.3.0",
+    "@yarnpkg/plugin-patch": "^2.1.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^15.0.0",
@@ -28,13 +28,13 @@
     "@rollup/plugin-replace": "^2.3.3",
     "@rollup/plugin-typescript": "^6.0.0",
     "@types/semver": "^7.3.4",
-    "@yarnpkg/cli": "^2.2.2",
-    "@yarnpkg/core": "^2.2.2",
-    "@yarnpkg/fslib": "^2.2.1",
-    "@yarnpkg/plugin-essentials": "^2.2.0",
-    "@yarnpkg/plugin-npm": "^2.2.0",
-    "@yarnpkg/plugin-patch": "^2.1.1",
-    "@yarnpkg/pnpify": "^2.2.1",
+    "@yarnpkg/cli": "^2.3.2",
+    "@yarnpkg/core": "^2.3.1",
+    "@yarnpkg/fslib": "^2.3.0",
+    "@yarnpkg/plugin-essentials": "^2.3.2",
+    "@yarnpkg/plugin-npm": "^2.3.0",
+    "@yarnpkg/plugin-patch": "^2.1.2",
+    "@yarnpkg/pnpify": "^2.3.2",
     "husky": "^4.3.0",
     "prettier": "^2.1.2",
     "prettier-plugin-json-formats": "~0.3.1",

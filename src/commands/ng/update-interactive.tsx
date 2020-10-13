@@ -143,8 +143,6 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
             configuration,
             ident: ident,
             json: true,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-expect-error update once updating yarn
             jsonResponse: true,
           }) as Promise<IdentMetadata>,
       );
