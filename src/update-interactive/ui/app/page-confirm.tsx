@@ -48,7 +48,7 @@ export function PageConfirm({
 
   useInput(
     (ch, key) => {
-      if (key.backspace || key.escape) {
+      if (key.backspace || key.escape || key.leftArrow) {
         goToPreviousPage();
       }
 
