@@ -24,7 +24,7 @@ Some of the features of this command:
 
 ## Angular in yarn's Plug-n-Play mode
 
-This plugin's PnP support is experimental. It should work for angular 8.3, 9 and 10, but only parts of angular have been tested so far.
+This plugin's PnP support is experimental. It should work for angular 8.3, 9, 10, and 11, but only parts of angular have been tested so far.
 If you're not using PnP, everything should work as is.
 
 - CLI:

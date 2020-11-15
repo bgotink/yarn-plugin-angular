@@ -1,5 +1,6 @@
-import {Hooks as CoreHooks, structUtils} from '@yarnpkg/core';
+import {Hooks as CoreHooks, IdentHash, structUtils} from '@yarnpkg/core';
 import {Hooks as PatchHooks} from '@yarnpkg/plugin-patch';
+import {satisfies} from 'semver';
 
 import angularDevkitBuildAngularPatch from './patches/@angular-devkit/build-angular.patch';
 import angularDevkitCorePatch from './patches/@angular-devkit/core.patch';
@@ -9,17 +10,20 @@ import ngtoolsWebpackPatch from './patches/@ngtools/webpack.patch';
 import karmaPatch from './patches/karma.patch';
 import typescriptPatch from './patches/typescript.patch';
 
-const PATCHES = new Map([
+const PATCHES = new Map<IdentHash, [patch: string, restriction: string | void]>([
   [
     structUtils.makeIdent('angular-devkit', 'build-angular').identHash,
-    angularDevkitBuildAngularPatch,
+    [angularDevkitBuildAngularPatch, undefined],
   ],
-  [structUtils.makeIdent('angular-devkit', 'core').identHash, angularDevkitCorePatch],
-  [structUtils.makeIdent('angular', 'cli').identHash, angularCliPatch],
-  [structUtils.makeIdent('angular', 'compiler-cli').identHash, angularCompilerCliPatch],
-  [structUtils.makeIdent('ngtools', 'webpack').identHash, ngtoolsWebpackPatch],
-  [structUtils.makeIdent(null, 'karma').identHash, karmaPatch],
-  [structUtils.makeIdent(null, 'typescript').identHash, typescriptPatch],
+  [structUtils.makeIdent('angular-devkit', 'core').identHash, [angularDevkitCorePatch, '< 11']],
+  [structUtils.makeIdent('angular', 'cli').identHash, [angularCliPatch, '< 11']],
+  [
+    structUtils.makeIdent('angular', 'compiler-cli').identHash,
+    [angularCompilerCliPatch, undefined],
+  ],
+  [structUtils.makeIdent('ngtools', 'webpack').identHash, [ngtoolsWebpackPatch, undefined]],
+  [structUtils.makeIdent(null, 'karma').identHash, [karmaPatch, undefined]],
+  [structUtils.makeIdent(null, 'typescript').identHash, [typescriptPatch, undefined]],
 ]);
 
 const TAG = 'ng/';
@@ -35,7 +39,7 @@ export const patchHooks: Partial<CoreHooks & PatchHooks> = {
       return;
     }
 
-    return PATCHES.get(structUtils.parseIdent(name.slice(TAG.length)).identHash) || null;
+    return PATCHES.get(structUtils.parseIdent(name.slice(TAG.length)).identHash)?.[0] || null;
   },
 
   reduceDependency: async (dependency, project) => {
@@ -45,7 +49,7 @@ export const patchHooks: Partial<CoreHooks & PatchHooks> = {
 
     const patch = PATCHES.get(dependency.identHash);
 
-    if (patch == null) {
+    if (patch == null || (patch[1] != null && !satisfies(dependency.range, patch[1]))) {
       return dependency;
     }
 
