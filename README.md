@@ -30,7 +30,7 @@ If you're not using PnP, everything should work as is.
 - CLI:
   - ✅ Running commands in the angular CLI (`ng build`, `ng test`, `ng e2e`, `ng xi18n` etc)
   - ✅ Running schematics (`ng generate`)
-  - ❓ Updating packages (`ng update`)
+  - ❌ Updating packages (`ng update`)
   - &hellip;
 - Devkit:
   - ✅ Building an application (`@angular-devkit/build-angular:browser`)
