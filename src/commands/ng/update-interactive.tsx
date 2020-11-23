@@ -7,6 +7,7 @@ import {
   Descriptor,
   DescriptorHash,
   execUtils,
+  formatUtils,
   Ident,
   IdentHash,
   MessageName,
@@ -325,22 +326,28 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
           const progress = StreamReport.progressViaCounter(updatesWithMigrations.length);
           report.reportProgress(progress);
 
-          for (const {ident, migrate} of updatesWithMigrations.values()) {
-            assert(migrate != null);
 
-            report.reportInfo(
-              null,
-              `Migrating ${structUtils.prettyIdent(
-                configuration,
-                ident,
-              )} from ${structUtils.prettyRange(configuration, migrate.from)}${
-                migrate.to ? ` to ${structUtils.prettyRange(configuration, migrate.to)}` : ''
-              }`,
-            );
-            progress.tick();
+          await xfs.mktempPromise(async logDir => {
+            xfs.detachTemp(logDir);
 
-            await xfs.mktempPromise(async logDir => {
-              const logFile = ppath.join(logDir, 'ng-update.log' as Filename);
+            for (const {ident, migrate} of updatesWithMigrations.values()) {
+              assert(migrate != null);
+
+              report.reportInfo(
+                null,
+                `Migrating ${structUtils.prettyIdent(
+                  configuration,
+                  ident,
+                )} from ${structUtils.prettyRange(configuration, migrate.from)}${
+                  migrate.to ? ` to ${structUtils.prettyRange(configuration, migrate.to)}` : ''
+                }`,
+              );
+              progress.tick();
+
+              const logFile = ppath.join(
+                logDir,
+                `ng-update-${structUtils.slugifyIdent(ident)}.log` as Filename,
+              );
               const writeLogStream = xfs.createWriteStream(logFile);
 
               const resultCode = await scriptUtils.executeWorkspaceAccessibleBinary(
@@ -366,21 +373,20 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
               if (resultCode !== 0) {
                 report.reportError(
                   MessageName.UNNAMED,
-                  `Failed to run migrations for ${structUtils.stringifyIdent(ident)}:`,
+                  `Failed to run migrations for ${structUtils.stringifyIdent(ident)}.`,
                 );
-
-                await new Promise((resolve, reject) => {
-                  const readLogStream = xfs.createReadStream(logFile);
-                  const logStream = report.createStreamReporter();
-
-                  readLogStream.pipe(logStream);
-
-                  logStream.on('end', resolve);
-                  readLogStream.on('error', reject);
-                });
               }
-            });
-          }
+            }
+
+            report.reportInfo(
+              MessageName.UNNAMED,
+              `Migration logs can be found at ${formatUtils.pretty(
+                configuration,
+                logDir as any,
+                formatUtils.Type.PATH,
+              )}`,
+            );
+          });
         });
       },
     );
