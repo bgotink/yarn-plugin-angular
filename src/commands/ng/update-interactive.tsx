@@ -326,6 +326,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
           const progress = StreamReport.progressViaCounter(updatesWithMigrations.length);
           report.reportProgress(progress);
 
+          process.env.NG_DISABLE_VERSION_CHECK = '1';
 
           await xfs.mktempPromise(async logDir => {
             xfs.detachTemp(logDir);
