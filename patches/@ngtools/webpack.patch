@@ -28,7 +28,7 @@ diff --git a/src/compiler_host.js b/src/compiler_host.js
              return p;
          }
 diff --git a/src/ngcc_processor.js b/src/ngcc_processor.js
-semver exclusivity ^11
+semver exclusivity >= 11.0.0 < 11.0.2
 --- a/src/ngcc_processor.js
 +++ b/src/ngcc_processor.js
 @@ -31,11 +31,12 @@ class NgccProcessor {
@@ -45,3 +45,24 @@ semver exclusivity ^11
          if (process.env.BAZEL_TARGET) {
              return;
          }
+diff --git a/src/ngcc_processor.js b/src/ngcc_processor.js
+semver exclusivity ^11.0.2
+--- a/src/ngcc_processor.js
++++ b/src/ngcc_processor.js
+@@ -33,7 +33,7 @@ class NgccProcessor {
+         this.symlinks = symlinks;
+         this._processedModules = new Set();
+         this._logger = new NgccLogger(this.compilationWarnings, this.compilationErrors);
+-        this._nodeModulesDirectory = this.findNodeModulesDirectory(this.basePath);
++        this._nodeModulesDirectory = require('path').join(__dirname.slice(0, __dirname.lastIndexOf('/.yarn/')), 'node_modules');
+         this._resolver = enhanced_resolve_1.ResolverFactory.createResolver({
+             // NOTE: @types/webpack InputFileSystem is missing some methods
+             // tslint:disable-next-line: no-any
+@@ -45,6 +45,7 @@ class NgccProcessor {
+     }
+     /** Process the entire node modules tree. */
+     process() {
++        return;
+         // Under Bazel when running in sandbox mode parts of the filesystem is read-only.
+         if (process.env.BAZEL_TARGET) {
+             return;
