@@ -8,9 +8,13 @@ This repository contains a yarn 2 (aka berry) plugin for angular development.
 yarn plugin import https://github.com/bgotink/yarn-plugin-angular/raw/latest/bin/%40yarnpkg/plugin-angular.js
 ```
 
-## Angular CLI
+## Angular CLI in monorepositories
 
-This plugin makes the Angular CLI available in your entire monorepository via `yarn ng` if it's installed in the project's root workspace.
+This plugin makes the Angular CLI available in your entire monorepository.
+Once installed in the root `package.json` file, running `ng` will be available everywhere:
+
+- You can run `yarn ng` in the entire monorepository, regardless of whether the current package has a dependency on `@angular/cli`.
+- You can use `ng` in scripts in the `scripts` section of any `package.json` of your monorepository.
 
 ## Interactive update
 
@@ -40,3 +44,17 @@ If you're not using PnP, everything should work as is.
   - &hellip;
 - Other:
   - &hellip;
+
+## Contributing
+
+When making changes, use `yarn build` to build the plugin. This'll create two
+files.
+
+- At `bundles/@yarnpkg/plugin-angular.js` you'll find the minified bundle, similar to the released file in the `bin` folder.
+- The second file, `bundles/@yarnpkg/plugin-angular.dev.js` is not minified. This is useful when debugging the plugin, as it keeps error stacktraces readable and it allows for easier step-through debugging via the Chrome inspector.
+
+The patchfiles are zipped and included in the `src/patches` folder. Use `yarn generate-patches` before `yarn build` to update these zipped patches.
+
+## License
+
+See LICENSE.md
