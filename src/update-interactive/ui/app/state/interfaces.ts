@@ -35,5 +35,5 @@ export interface AppState {
 export type AppEvent =
   | {ident: IdentHash; range: string | null}
   | {fetchSuggestionFor: IdentHash}
-  | {ident: IdentHash; suggestions: string[]}
-  | {ident: IdentHash; manifest: UpdatableManifest};
+  | {suggestions: {ident: IdentHash; suggestions: string[]}[]}
+  | {manifests: {ident: IdentHash; manifest: UpdatableManifest}[]};

@@ -2,7 +2,7 @@
 
 import {Configuration, Descriptor, Project, structUtils} from '@yarnpkg/core';
 import {useApp} from 'ink';
-import React, {useEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 
 import {UpdatableManifest} from '../../utils';
 
@@ -14,6 +14,10 @@ import {UpdateCollection} from './update-collection';
 const enum ActivePage {
   Select,
   Confirm,
+}
+
+function isntNull<T>(value: T): value is NonNullable<T> {
+  return value != null;
 }
 
 export function App({
@@ -33,69 +37,62 @@ export function App({
 }): JSX.Element {
   const [state, updateState] = useAppState(configuration, dependencies);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (state.fetchSuggestionQueue == null) {
       return;
     }
 
     let active = true;
 
-    for (const ident of state.fetchSuggestionQueue) {
-      fetchSuggestions(state.itemMap.get(ident)!.requestedDescriptors[0]).then(
-        suggestions => {
-          if (active) {
-            updateState({ident, suggestions});
-          }
-        },
-        () => {
-          if (active) {
-            updateState({ident, suggestions: []});
-          }
-        },
-      );
-    }
+    Promise.all(
+      Array.from(state.fetchSuggestionQueue, ident =>
+        fetchSuggestions(state.itemMap.get(ident)!.requestedDescriptors[0])
+          .catch(() => [])
+          .then(suggestions => ({ident, suggestions})),
+      ),
+    ).then(suggestions => {
+      if (active) {
+        updateState({suggestions});
+      }
+    });
 
     return () => {
       active = false;
     };
   }, [state.fetchSuggestionQueue]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let active = true;
 
     if (state.fetchMetaQueue == null) {
       return;
     }
 
-    for (const ident of state.fetchMetaQueue) {
-      const item = state.itemMap.get(ident)!;
+    Promise.all(
+      Array.from(state.fetchMetaQueue, ident => {
+        const item = state.itemMap.get(ident)!;
 
-      if (item.suggestions == null) {
-        continue;
+        if (item.suggestions == null) {
+          return null;
+        }
+
+        return fetchDescriptorManifest(
+          structUtils.makeDescriptor(item.ident, getRangeForItem(state, ident)),
+        )
+          .catch(() => null)
+          .then(manifest => ({
+            ident,
+            manifest: manifest ?? {
+              name: structUtils.stringifyIdent(state.itemMap.get(ident)!.ident),
+              version: '0.0.0',
+            },
+          }));
+      }),
+    ).then(manifests => {
+      if (active) {
+        updateState({manifests: manifests.filter(isntNull)});
       }
-
-      fetchDescriptorManifest(structUtils.makeDescriptor(item.ident, getRangeForItem(state, ident)))
-        .then(manifest => {
-          if (manifest == null) {
-            throw new Error('caught later on');
-          }
-
-          if (active) {
-            updateState({manifest, ident});
-          }
-        })
-        .catch(() => {
-          if (active) {
-            updateState({
-              ident,
-              manifest: {
-                name: structUtils.stringifyIdent(state.itemMap.get(ident)!.ident),
-                version: '0.0.0',
-              },
-            });
-          }
-        });
-    }
+    });
 
     return () => {
       active = false;
