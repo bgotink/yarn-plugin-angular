@@ -361,7 +361,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
                   '--from',
                   migrate.from,
                   ...(migrate.to != null ? ['--to', migrate.to] : []),
-                  ...(this.createCommits ? ['--create-commits'] : []),
+                  ...(this.createCommits ? ['--create-commits'] : ['--allow-dirty']),
                 ],
                 {
                   cwd: topLevelWorkspace.cwd,
