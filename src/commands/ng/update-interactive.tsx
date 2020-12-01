@@ -79,13 +79,15 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
     examples: [['Open the upgrade window', 'yarn ng update --interactive']],
   });
 
-  @BaseCommand.Boolean('--next')
+  @BaseCommand.Boolean('--next', {
+    description: 'Use the prerelease version, including beta and RCs',
+  })
   public includeNext = false;
 
-  @BaseCommand.Boolean('--create-commits,-C')
+  @BaseCommand.Boolean('--create-commits,-C', {
+    description: 'Create source control commits for updates and migrations',
+  })
   public createCommits = false;
-
-  // ??? Add a switch to only update the current workspace vs entire project (project = default)?
 
   @BaseCommand.Path('ng', 'update', '--interactive')
   public async execute(): Promise<number> {
