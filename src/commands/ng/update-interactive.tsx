@@ -406,7 +406,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
       await execUtils.pipevp('git', ['commit', '--no-verify', '-F', '-'], {
         cwd: this.context.cwd,
         strict: true,
-        stdin: Readable.from(message),
+        stdin: Readable.from(message, {objectMode: false}),
         stdout: new Writable(),
         stderr: new Writable(),
       });
