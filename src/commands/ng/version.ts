@@ -1,25 +1,18 @@
-import {BaseCommand} from '@yarnpkg/cli';
 import {Configuration, structUtils, YarnVersion} from '@yarnpkg/core';
+import {AngularCommand} from '../../angular-command';
 
 const VERSION = 'VERSION';
 
-export default class NgCommand extends BaseCommand {
-  @BaseCommand.Proxy()
+export default class extends AngularCommand {
+  @AngularCommand.Proxy()
   public args: string[] = [];
 
-  @BaseCommand.Path('ng', '--version')
-  @BaseCommand.Path('ng', 'version')
+  @AngularCommand.Path('ng', '--version')
+  @AngularCommand.Path('ng', 'version')
   public async execute(): Promise<number> {
     const configuration = await Configuration.find(this.context.cwd, this.context.plugins);
 
-    const exitCode = await this.cli.run([
-      'run',
-      '--top-level',
-      '--binaries-only',
-      'ng',
-      'version',
-      ...this.args,
-    ]);
+    const exitCode = await this.ng(['version']);
 
     function prettyIdent(scope: string, name: string) {
       return structUtils.prettyIdent(configuration, structUtils.makeIdent(scope, name));
