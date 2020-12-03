@@ -31,6 +31,8 @@ export default class NgCommand extends BaseCommand {
       this.context.cwd,
     );
 
+    await project.restoreInstallState();
+
     const workspacesToLook = [project.topLevelWorkspace];
 
     if (activeWorkspace != null) {
