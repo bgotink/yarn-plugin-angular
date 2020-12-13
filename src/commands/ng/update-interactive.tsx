@@ -18,7 +18,6 @@ import {
   structUtils,
 } from '@yarnpkg/core';
 import {Filename, ppath, xfs} from '@yarnpkg/fslib';
-import {suggestUtils} from '@yarnpkg/plugin-essentials';
 import {npmHttpUtils} from '@yarnpkg/plugin-npm';
 import assert from 'assert';
 import {render} from 'ink';
@@ -26,8 +25,8 @@ import * as semver from 'own-semver';
 import React from 'react';
 import {Readable, Writable} from 'stream';
 
-import {App} from '../../update-interactive/ui/app';
-import {UpdateCollection} from '../../update-interactive/ui/app/update-collection';
+import {App, UpdateCollection} from '../../update-interactive/ui/app';
+import {UpdateResolver} from '../../update-interactive/update-resolver';
 import {cleanRange, getRange, UpdatableManifest} from '../../update-interactive/utils';
 
 function getAllDependencies(
@@ -111,53 +110,42 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
     }
 
     const allDependencies = getAllDependencies(project);
-
-    const fetchUpdatedDescriptor = async (
-      descriptor: Descriptor,
-      copyStyle: string,
-      range: string,
-    ) => {
-      const candidate = await suggestUtils.fetchDescriptorFrom(descriptor, range, {
-        project,
-        cache,
-        preserveModifier: copyStyle,
-        workspace,
-      });
-
-      if (candidate !== null) {
-        return candidate.range;
-      } else {
-        return descriptor.range;
-      }
-    };
+    const updateResolver = new UpdateResolver(project, cache, this.includeNext);
 
     interface IdentMetadata {
       versions: {[version: string]: UpdatableManifest};
       'dist-tags': {[tag: string]: string};
     }
 
-    const identManifestCache = new Map<IdentHash, Promise<IdentMetadata>>();
-    function fetchIdentManifest(ident: Ident): Promise<IdentMetadata> {
-      return miscUtils.getFactoryWithDefault(
-        identManifestCache,
-        ident.identHash,
-        () =>
-          npmHttpUtils.get(npmHttpUtils.getIdentUrl(ident), {
+    const identManifestPromises = new Map<IdentHash, Promise<void>>();
+    const identManifestCache = new Map<IdentHash, IdentMetadata>();
+    function fetchIdentManifest(ident: Ident): Promise<void> {
+      return miscUtils.getFactoryWithDefault(identManifestPromises, ident.identHash, async () => {
+        identManifestCache.set(
+          ident.identHash,
+          await npmHttpUtils.get(npmHttpUtils.getIdentUrl(ident), {
             configuration,
             ident: ident,
             json: true,
             jsonResponse: true,
-          }) as Promise<IdentMetadata>,
-      );
+          }),
+        );
+      });
     }
 
-    const descriptorManifestCache = new Map<DescriptorHash, Promise<UpdatableManifest | null>>();
-    function fetchDescriptorManifest(descriptor: Descriptor): Promise<UpdatableManifest | null> {
+    const descriptorManifestCache = new Map<DescriptorHash, UpdatableManifest>();
+    function getDescriptorManifest(descriptor: Descriptor): UpdatableManifest {
       return miscUtils.getFactoryWithDefault(
         descriptorManifestCache,
         descriptor.descriptorHash,
-        async () => {
-          const {versions, 'dist-tags': distTags} = await fetchIdentManifest(descriptor);
+        () => {
+          const identManifest = identManifestCache.get(descriptor.identHash);
+
+          if (identManifest == null) {
+            throw new Error(`Pre-fetch data before calling synchronous API`);
+          }
+
+          const {versions, 'dist-tags': distTags} = identManifest;
           let range = cleanRange(descriptor.range);
 
           if (distTags[range]) {
@@ -176,78 +164,17 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
             }
           }
 
-          return null;
+          return {
+            name: structUtils.stringifyIdent(descriptor),
+            version: `0.0.0-not-found`,
+          };
         },
       );
     }
 
-    const suggestionCache = new Map<DescriptorHash, Promise<string[]>>();
-    const fetchSuggestions = (descriptor: Descriptor): Promise<string[]> => {
-      return miscUtils.getFactoryWithDefault(
-        suggestionCache,
-        descriptor.descriptorHash,
-        async () => {
-          const referenceRange = semver.valid(descriptor.range)
-            ? semver.major(descriptor.range) > 0
-              ? `^${descriptor.range}`
-              : `~${descriptor.range}`
-            : descriptor.range;
-
-          const [semverCompatible, latest, next] = await Promise.all([
-            fetchUpdatedDescriptor(descriptor, descriptor.range, referenceRange),
-            fetchUpdatedDescriptor(descriptor, descriptor.range, 'latest'),
-            fetchUpdatedDescriptor(descriptor, descriptor.range, 'next').catch(() => null),
-          ]);
-
-          const ranges: string[] = [];
-
-          if (semverCompatible !== descriptor.range) {
-            ranges.push(semverCompatible);
-          }
-
-          if (latest !== semverCompatible && latest !== descriptor.range) {
-            if (semver.valid(descriptor.range) && semver.valid(latest)) {
-              const start = new semver.SemVer(descriptor.range);
-              const end = new semver.SemVer(latest);
-
-              const promises: Promise<string>[] = [];
-
-              if (end.major > 0) {
-                for (let major = start.major + 1; major < end.major; major++) {
-                  promises.push(fetchUpdatedDescriptor(descriptor, descriptor.range, `^${major}`));
-                }
-              } else {
-                for (let minor = start.minor + 1; minor < end.minor; minor++) {
-                  promises.push(
-                    fetchUpdatedDescriptor(descriptor, descriptor.range, `~0.${minor}`),
-                  );
-                }
-              }
-
-              ranges.push(
-                ...(await Promise.all(promises)).filter(range => range !== descriptor.range),
-              );
-            }
-
-            ranges.push(latest);
-          }
-
-          if (
-            this.includeNext &&
-            next != null &&
-            next !== latest &&
-            next !== semverCompatible &&
-            next !== descriptor.range
-          ) {
-            // Only add the next tag if it points to a newer version than latest
-            if (!semver.valid(next) || !semver.valid(latest) || semver.gte(next, latest)) {
-              ranges.push(next);
-            }
-          }
-
-          return ranges;
-        },
-      );
+    const fetchSuggestions = (ident: Ident): Promise<void> => updateResolver.fetch(ident);
+    const getSuggestions = (descriptor: Descriptor, requirement: semver.Range | null): string[] => {
+      return updateResolver.getPossibleVersions(descriptor, {requirement});
     };
 
     let commitUpdateCollection: ((state: UpdateCollection) => void) | undefined;
@@ -260,8 +187,10 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
         configuration={configuration}
         project={project}
         dependencies={Array.from(allDependencies.values())}
-        fetchDescriptorManifest={fetchDescriptorManifest}
+        fetchMeta={fetchIdentManifest}
+        getDescriptorMeta={getDescriptorManifest}
         fetchSuggestions={fetchSuggestions}
+        getSuggestions={getSuggestions}
         commitUpdateCollection={commitUpdateCollection!}
       />,
       {

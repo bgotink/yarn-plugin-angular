@@ -1,30 +1,53 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {Configuration, IdentHash, structUtils} from '@yarnpkg/core';
+import {Configuration, Descriptor, structUtils} from '@yarnpkg/core';
 import {Box, BoxProps, Text} from 'ink';
 import {Range, subset} from 'own-semver';
 import React from 'react';
 
-import {getIntersection} from '../../utils';
 import {ItemOptions} from '../elements/item-options';
 import {Key} from '../elements/key';
 
-import {getRequirers, isIncluded, UpdatableItem} from './state';
-import {getIncluders} from './state/status';
+import type {
+  AppState,
+  IncludedInformation,
+  SelectedOrRequiredInformation,
+  UpdatableItem,
+} from './state';
 
 export function RangeSelector({
   configuration,
   activeItem,
-  itemMap,
+  state,
+  getSuggestions,
   onChange,
+  inclusion,
+  selectionOrRequirement,
   ...props
 }: {
   configuration: Configuration;
   activeItem: UpdatableItem | null;
-  itemMap: ReadonlyMap<IdentHash, UpdatableItem>;
+  state: AppState;
+  getSuggestions: (descriptor: Descriptor, range: Range | null) => readonly string[];
   onChange: (range: string | null) => void;
+  inclusion: IncludedInformation | null | undefined;
+  selectionOrRequirement: SelectedOrRequiredInformation | null | undefined;
 } & BoxProps): JSX.Element {
-  if (activeItem != null && isIncluded({itemMap}, activeItem.identHash)) {
+  if (activeItem == null) {
+    return (
+      <Box
+        borderColor="grey"
+        borderStyle="round"
+        {...props}
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Text color="grey">Select an item</Text>
+      </Box>
+    );
+  }
+
+  if (activeItem.selectedRange == null && inclusion != null) {
     return (
       <Box
         borderColor="grey"
@@ -35,15 +58,21 @@ export function RangeSelector({
       >
         <Text>
           This package cannot be chosen, its version is defined by{' '}
-          {getIncluders({itemMap}, activeItem.identHash)!
-            .map(item => structUtils.prettyIdent(configuration, itemMap.get(item.ident)!.ident))
-            .join(', ')}
+          {Array.from(inclusion.by.keys(), ident =>
+            structUtils.prettyIdent(configuration, state.itemMap.get(ident)!.ident),
+          ).join(', ')}
         </Text>
       </Box>
     );
   }
 
-  if (activeItem == null || activeItem.suggestions == null) {
+  let suggestions = selectionOrRequirement?.suggestions;
+
+  if (suggestions == null && state.suggestionsFetched.has(activeItem.identHash)) {
+    suggestions = getSuggestions(activeItem.requestedDescriptors[0], null);
+  }
+
+  if (suggestions == null) {
     return (
       <Box
         borderColor="grey"
@@ -52,12 +81,12 @@ export function RangeSelector({
         alignItems="center"
         justifyContent="center"
       >
-        <Text color="grey">{activeItem != null ? 'Loading suggestions...' : 'Select an item'}</Text>
+        <Text color="grey">Loading suggestions...</Text>
       </Box>
     );
   }
 
-  if (activeItem.suggestions.length === 0) {
+  if (suggestions.length === 0) {
     return (
       <Box
         borderColor="grey"
@@ -76,63 +105,27 @@ export function RangeSelector({
     );
   }
 
-  let isValidRange: (range: string) => boolean = () => true;
-  const requirers = getRequirers({itemMap}, activeItem.identHash);
-  if (requirers != null) {
-    const requirement = requirers
-      .map(req => req.range)
-      .filter((r): r is Range => typeof r !== 'string')
-      .reduce((previous, current) =>
-        previous != null ? getIntersection(previous, current)! : null!,
-      ) as Range | null;
+  const validRange = selectionOrRequirement?.validRange ?? inclusion?.validRange;
+  const isValidRange = validRange ? (range: string) => subset(range, validRange) : () => true;
 
-    if (requirement != null) {
-      isValidRange = range => subset(range, requirement);
-    }
-  }
-
+  const currentRange = activeItem.requestedDescriptors[0].range;
   const options = [
     {
       value: null,
-      label: structUtils.prettyRange(configuration, activeItem.requestedDescriptors[0].range),
+      label: structUtils.prettyRange(configuration, currentRange),
       disabled: !isValidRange(activeItem.requestedDescriptors[0].range),
     },
-    ...activeItem.suggestions.map(value => ({
-      value,
-      label: structUtils.prettyRange(configuration, value),
-      disabled: !isValidRange(value),
-    })),
+    ...suggestions
+      .filter(range => range !== currentRange)
+      .map(value => ({
+        value,
+        label: structUtils.prettyRange(configuration, value),
+        disabled: !isValidRange(value),
+      })),
   ];
 
-  if (options.every(option => option.disabled)) {
-    return (
-      <Box
-        borderColor="grey"
-        borderStyle="round"
-        {...props}
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="flex-start"
-        paddingLeft={1}
-      >
-        <Text>
-          <Text color="redBright" bold>
-            Warning:
-          </Text>{' '}
-          No update could be suggested for {options[0].label}
-        </Text>
-        <Box height={1} />
-        <Text>
-          This can be caused by conflicting peer dependencies, or peer dependencies requiring a
-          downgrade.
-        </Text>
-        <Text>You might have to update this package manually.</Text>
-      </Box>
-    );
-  }
-
   const activeOption =
-    options.find(option => option.value === activeItem.selectedRange && !option.disabled) ??
+    options.find(option => option.value === activeItem.selectedRange) ??
     options.find(option => !option.disabled) ??
     options[0];
 

@@ -1,10 +1,11 @@
 import {Configuration, Descriptor, IdentHash, miscUtils, structUtils} from '@yarnpkg/core';
-import {Dispatch, useReducer} from 'react';
+import {Range} from 'own-semver';
+import {Dispatch, useCallback, useReducer} from 'react';
 
-import {sortByMaxVersion} from '../../../utils';
+import {sortByMaxVersion, UpdatableManifest} from '../../../utils';
 
-import {AppState, AppEvent, UpdatableItem} from './interfaces';
-import {reduceAppState} from './reducer';
+import type {AppState, AppEvent, UpdatableItem} from './interfaces';
+import {createAppStateReducer} from './reducer';
 
 function initAppState(itemArray: UpdatableItem[]) {
   const itemOrder = itemArray.map(item => item.identHash);
@@ -13,12 +14,18 @@ function initAppState(itemArray: UpdatableItem[]) {
   return (): AppState => ({
     itemMap: items,
     itemOrder,
+
+    metaFetched: new Set(),
+    suggestionsFetched: new Set(),
+
+    included: new Map(),
+    selectedAndRequired: new Map(),
   });
 }
 
 function groupIdents(
   configuration: Configuration,
-  descriptors: {requested: Descriptor; installed?: Descriptor}[],
+  descriptors: readonly {readonly requested: Descriptor; readonly installed?: Descriptor}[],
 ): UpdatableItem[] {
   const identMap = new Map<IdentHash, {requested: Descriptor; installed?: Descriptor}[]>();
 
@@ -57,10 +64,15 @@ function groupIdents(
 
 export function useAppState(
   configuration: Configuration,
-  dependencies: {requested: Descriptor; installed?: Descriptor}[],
+  dependencies: readonly {readonly requested: Descriptor; readonly installed?: Descriptor}[],
+  getSuggestions: (descriptor: Descriptor, range: Range | null) => readonly string[],
+  getDescriptorMeta: (descriptor: Descriptor) => UpdatableManifest,
 ): [AppState, Dispatch<AppEvent>] {
   return useReducer(
-    reduceAppState,
+    useCallback(createAppStateReducer(getSuggestions, getDescriptorMeta), [
+      getSuggestions,
+      getDescriptorMeta,
+    ]),
     undefined,
     initAppState(groupIdents(configuration, dependencies)),
   );

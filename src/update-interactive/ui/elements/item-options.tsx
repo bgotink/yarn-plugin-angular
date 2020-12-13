@@ -40,7 +40,8 @@ export function ItemOptions<T>({
           return (
             <Box key={item.label} minWidth={size - 1} marginLeft={1}>
               <Text wrap="truncate">
-                <Text color="green"> ◉ </Text> <Text bold>{item.label}</Text>
+                <Text color={item.disabled ? 'grey' : 'green'}> ◉ </Text>{' '}
+                <Text bold>{item.label}</Text>
               </Text>
             </Box>
           );

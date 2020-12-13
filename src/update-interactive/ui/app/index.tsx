@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {Configuration, Descriptor, Project, structUtils} from '@yarnpkg/core';
+import {Configuration, Descriptor, Ident, Project} from '@yarnpkg/core';
 import {useApp} from 'ink';
 import React, {useLayoutEffect, useState} from 'react';
+import {Range} from 'own-semver';
 
 import {UpdatableManifest} from '../../utils';
 
 import {PageConfirm} from './page-confirm';
 import {PageSelect} from './page-select';
-import {getRangeForItem, useAppState} from './state';
+import {useAppState} from './state';
 import {UpdateCollection} from './update-collection';
 
 const enum ActivePage {
@@ -16,39 +17,47 @@ const enum ActivePage {
   Confirm,
 }
 
-function isntNull<T>(value: T): value is NonNullable<T> {
-  return value != null;
-}
+export {UpdateCollection};
 
 export function App({
   configuration,
   project,
   dependencies,
   fetchSuggestions,
-  fetchDescriptorManifest,
+  fetchMeta,
+  getSuggestions,
+  getDescriptorMeta,
   commitUpdateCollection,
 }: {
   configuration: Configuration;
   project: Project;
-  dependencies: {requested: Descriptor; installed?: Descriptor}[];
-  fetchDescriptorManifest: (descriptor: Descriptor) => Promise<UpdatableManifest | null>;
-  fetchSuggestions: (descriptor: Descriptor) => Promise<string[]>;
+  dependencies: readonly {readonly requested: Descriptor; readonly installed?: Descriptor}[];
+  fetchSuggestions: (ident: Ident) => Promise<void>;
+  fetchMeta: (ident: Ident) => Promise<void>;
+  getSuggestions: (descriptor: Descriptor, range: Range | null) => readonly string[];
+  getDescriptorMeta: (descriptor: Descriptor) => UpdatableManifest;
   commitUpdateCollection: (collection: UpdateCollection) => void;
 }): JSX.Element {
-  const [state, updateState] = useAppState(configuration, dependencies);
+  const [state, updateState] = useAppState(
+    configuration,
+    dependencies,
+    getSuggestions,
+    getDescriptorMeta,
+  );
 
   useLayoutEffect(() => {
-    if (state.fetchSuggestionQueue == null) {
+    if (state.suggestionsFetching == null) {
       return;
     }
 
     let active = true;
 
     Promise.all(
-      Array.from(state.fetchSuggestionQueue, ident =>
-        fetchSuggestions(state.itemMap.get(ident)!.requestedDescriptors[0])
-          .catch(() => [])
-          .then(suggestions => ({ident, suggestions})),
+      Array.from(state.suggestionsFetching, ident =>
+        fetchSuggestions(state.itemMap.get(ident)!.ident).then(
+          () => ident,
+          () => ident,
+        ),
       ),
     ).then(suggestions => {
       if (active) {
@@ -59,45 +68,32 @@ export function App({
     return () => {
       active = false;
     };
-  }, [state.fetchSuggestionQueue]);
+  }, [state.suggestionsFetching]);
 
   useLayoutEffect(() => {
     let active = true;
 
-    if (state.fetchMetaQueue == null) {
+    if (state.metaFetching == null) {
       return;
     }
 
     Promise.all(
-      Array.from(state.fetchMetaQueue, ident => {
-        const item = state.itemMap.get(ident)!;
-
-        if (item.suggestions == null) {
-          return null;
-        }
-
-        return fetchDescriptorManifest(
-          structUtils.makeDescriptor(item.ident, getRangeForItem(state, ident)),
-        )
-          .catch(() => null)
-          .then(manifest => ({
-            ident,
-            manifest: manifest ?? {
-              name: structUtils.stringifyIdent(state.itemMap.get(ident)!.ident),
-              version: '0.0.0',
-            },
-          }));
-      }),
+      Array.from(state.metaFetching, ident =>
+        fetchMeta(state.itemMap.get(ident)!.ident).then(
+          () => ident,
+          () => ident,
+        ),
+      ),
     ).then(manifests => {
       if (active) {
-        updateState({manifests: manifests.filter(isntNull)});
+        updateState({manifests});
       }
     });
 
     return () => {
       active = false;
     };
-  }, [state.fetchMetaQueue, state.fetchSuggestionQueue]);
+  }, [state.metaFetching]);
 
   const [activePage, setActivePage] = useState<ActivePage>(ActivePage.Select);
   const {exit} = useApp();
@@ -108,6 +104,7 @@ export function App({
         <PageSelect
           configuration={configuration}
           state={state}
+          getSuggestions={getSuggestions}
           updateState={updateState}
           goToNextPage={() => setActivePage(ActivePage.Confirm)}
         />

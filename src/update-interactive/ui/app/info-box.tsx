@@ -1,26 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {Configuration, IdentHash, structUtils} from '@yarnpkg/core';
+import {Configuration, structUtils} from '@yarnpkg/core';
 import {Box, BoxProps, Text} from 'ink';
 import React from 'react';
 
-import {getIncluders, getRequirers, rangeToString, UpdatableItem} from './state';
+import {AppState, rangeToString, UpdatableItem} from './state';
 
 export function InfoBox({
   activeItem,
-  itemMap,
+  state,
   configuration,
   ...boxProps
 }: {
   activeItem: UpdatableItem | null;
-  itemMap: ReadonlyMap<IdentHash, UpdatableItem>;
+  state: AppState;
   configuration: Configuration;
 } & BoxProps): JSX.Element {
   if (activeItem == null) {
     return <Box borderColor="grey" borderStyle="round" {...boxProps} />;
   }
 
-  const includers = getIncluders({itemMap}, activeItem.identHash);
-  const requirers = getRequirers({itemMap}, activeItem.identHash);
+  const includers = state.included.get(activeItem.identHash)?.by;
+  const requirers = state.selectedAndRequired.get(activeItem.identHash)?.by;
+  const newRange =
+    activeItem.selectedRange ?? state.selectedAndRequired.get(activeItem.identHash)?.selectedRange;
 
   return (
     <Box
@@ -43,29 +45,26 @@ export function InfoBox({
         ).join(', ')}
       </Text>
       <Text>
-        Selected new version:{' '}
-        {activeItem.selectedRange
-          ? structUtils.prettyRange(configuration, activeItem.selectedRange)
-          : 'none'}
+        Selected new version: {newRange ? structUtils.prettyRange(configuration, newRange) : 'none'}
       </Text>
       <Box>
-        {includers && (
+        {!!includers?.size && (
           <Box flexDirection="column">
             <Text>Included by:</Text>
-            {includers.map(({ident, range}) => (
+            {Array.from(includers, ([ident, range]) => (
               <Text>
-                - {structUtils.prettyIdent(configuration, itemMap.get(ident)!.ident)} {'->'}{' '}
+                - {structUtils.prettyIdent(configuration, state.itemMap.get(ident)!.ident)} {'->'}{' '}
                 {structUtils.prettyRange(configuration, rangeToString(range, true))}
               </Text>
             ))}
           </Box>
         )}
-        {requirers && (
+        {!!requirers?.size && (
           <Box flexDirection="column">
             <Text>An update is required by:</Text>
-            {requirers.map(({ident, range}) => (
+            {Array.from(requirers, ([ident, range]) => (
               <Text>
-                - {structUtils.prettyIdent(configuration, itemMap.get(ident)!.ident)} {'->'}{' '}
+                - {structUtils.prettyIdent(configuration, state.itemMap.get(ident)!.ident)} {'->'}{' '}
                 {structUtils.prettyRange(configuration, rangeToString(range, true))}
               </Text>
             ))}

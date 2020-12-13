@@ -2,15 +2,14 @@
 
 import {Configuration, DescriptorHash, Ident, IdentHash, Project, structUtils} from '@yarnpkg/core';
 import {Box, Text, useInput} from 'ink';
-import {intersects, minVersion, Range, sort, valid} from 'own-semver';
+import {minVersion, sort, valid} from 'own-semver';
 import React from 'react';
 
 import {cleanRange, getUpdatableRange, simplifyRange} from '../../utils/ranges';
 import {Key} from '../elements/key';
 
-import {AppState, isIncluded, isRequired, isSelected} from './state';
-import {getIncluders, getRequiredRange, getRequirers, rangeToString} from './state/status';
-import {UpdateCollection} from './update-collection';
+import {AppState, rangeToString} from './state';
+import type {UpdateCollection} from './update-collection';
 
 interface ItemUpdateCollection {
   ident: Ident;
@@ -22,10 +21,16 @@ interface ItemUpdateCollection {
   updates: ReadonlyMap<DescriptorHash, [oldRange: string, newRange: string]>;
 }
 
+interface ItemWithoutUpdateCollection {
+  ident: Ident;
+  notes: string[];
+  updates: null;
+}
+
 export function PageConfirm({
   configuration,
   project,
-  state: {itemMap, itemOrder, fetchMetaQueue},
+  state,
   goToPreviousPage,
   goToNextPage,
 }: {
@@ -35,16 +40,11 @@ export function PageConfirm({
   goToPreviousPage: () => void;
   goToNextPage: (collection: UpdateCollection) => void;
 }): JSX.Element {
-  const updateItems = fetchMetaQueue?.size
+  const updateItems = state.metaFetching?.size
     ? null
-    : itemOrder
-        .filter(
-          ident =>
-            isSelected({itemMap}, ident) ||
-            isRequired({itemMap}, ident) ||
-            isIncluded({itemMap}, ident),
-        )
-        .map(ident => getItemUpdateCollection({configuration, project, itemMap, ident}));
+    : state.itemOrder
+        .filter(ident => state.selectedAndRequired.has(ident))
+        .map(ident => getItemUpdateCollection({configuration, project, state, ident}));
 
   useInput(
     (ch, key) => {
@@ -55,16 +55,18 @@ export function PageConfirm({
       if (key.return && updateItems != null) {
         goToNextPage(
           new Map(
-            updateItems.map(({ident, updates, migrate}) => [
-              ident.identHash,
-              {
-                migrate,
-                ident,
-                updates: new Map(
-                  Array.from(updates, ([descriptor, [, range]]) => [descriptor, range]),
-                ),
-              },
-            ]),
+            updateItems
+              .filter((item): item is ItemUpdateCollection => item.updates != null)
+              .map(({ident, updates, migrate}) => [
+                ident.identHash,
+                {
+                  migrate,
+                  ident,
+                  updates: new Map(
+                    Array.from(updates, ([descriptor, [, range]]) => [descriptor, range]),
+                  ),
+                },
+              ]),
           ),
         );
       }
@@ -83,14 +85,14 @@ export function PageConfirm({
           key={item.ident.identHash}
           configuration={configuration}
           project={project}
-          itemMap={itemMap}
+          itemMap={state.itemMap}
           updateItem={item}
         />
       ))}
       <Box height={1} />
       <Text>
         If this looks correct, hit <Key>enter</Key> to confirm and start the update. Use{' '}
-        <Key>backspace</Key> to go back and edit the selection, or <Key>ctrl-c</Key> to quit.
+        <Key>arrow left</Key> to go back and edit the selection, or <Key>ctrl-c</Key> to quit.
       </Text>
     </>
   );
@@ -98,71 +100,54 @@ export function PageConfirm({
 
 function getItemUpdateCollection({
   configuration,
-  project,
-  itemMap,
   ident,
+  project,
+  state,
 }: {
   configuration: Configuration;
-  project: Project;
-  itemMap: AppState['itemMap'];
   ident: IdentHash;
-}): ItemUpdateCollection {
-  const item = itemMap.get(ident)!;
+  project: Project;
+  state: AppState;
+}): ItemUpdateCollection | ItemWithoutUpdateCollection {
+  const item = state.itemMap.get(ident)!;
+  const selectionInfo = state.selectedAndRequired.get(ident);
+  const inclusionInfo = state.included.get(ident);
 
+  const versionOrRange = item.selectedRange ?? state.selectedAndRequired.get(ident)!.selectedRange;
   const notes: string[] = [];
-  let versionOrRange: string | Range | undefined;
 
-  if (item.selectedRange != null) {
-    const requiredRange = getRequiredRange({itemMap}, ident);
-    if (requiredRange == null || intersects(requiredRange, item.selectedRange)) {
-      versionOrRange = item.selectedRange;
+  if (versionOrRange == null) {
+    if (!selectionInfo?.conflictingRanges) {
+      throw new Error(`Unexpected updated item: ${item.label}`);
+    }
+
+    notes.push(
+      `Couldn't find a version to update to, keeping ${item.label} at the current version`,
+    );
+  }
+
+  if (inclusionInfo != null) {
+    if (inclusionInfo.by.size > 1) {
+      const ranges = new Set(Array.from(inclusionInfo.by.values(), range => rangeToString(range)));
+
+      if (ranges.size > 1) {
+        notes.push(
+          `Multiple versions are included: ${Array.from(ranges, range =>
+            structUtils.prettyRange(configuration, range),
+          ).join(', ')}`,
+        );
+      }
     }
   }
 
-  if (versionOrRange == null) {
-    const includers = getIncluders({itemMap}, ident);
-    const requirers = getRequirers({itemMap}, ident);
+  if (selectionInfo?.conflictingRanges) {
+    const ranges = new Set(Array.from(selectionInfo.by.values(), range => rangeToString(range)));
 
-    if (includers != null) {
-      versionOrRange = includers[0].range;
-
-      if (includers.length !== 1) {
-        const ranges = new Set(includers.map(includer => rangeToString(includer.range)));
-
-        if (ranges.size > 1) {
-          notes.push(
-            `Multiple versions are included: ${Array.from(ranges, range =>
-              structUtils.prettyRange(configuration, range),
-            ).join(', ')}`,
-          );
-        }
-      }
-    } else if (requirers != null) {
-      const suggestedRanges = item.suggestions;
-      const requiredRange = getRequiredRange({itemMap}, ident);
-
-      if (suggestedRanges != null && requiredRange != null) {
-        versionOrRange = suggestedRanges.find(range => intersects(range, requiredRange));
-      }
-
-      if (versionOrRange == null) {
-        versionOrRange = requirers[0].range;
-      }
-
-      if (requirers.length !== 1) {
-        const ranges = new Set(requirers.map(requirer => rangeToString(requirer.range)));
-
-        if (ranges.size > 1) {
-          notes.push(
-            `Multiple versions are required: ${Array.from(ranges, range =>
-              structUtils.prettyRange(configuration, range),
-            ).join(', ')}`,
-          );
-        }
-      }
-    } else {
-      throw new Error(`Unexpected updated item: ${item.label}`);
-    }
+    notes.push(
+      `Multiple versions are required: ${Array.from(ranges, range =>
+        structUtils.prettyRange(configuration, range),
+      ).join(', ')}`,
+    );
   }
 
   const {installedDescriptors, requestedDescriptors} = item;
@@ -205,12 +190,20 @@ function getItemUpdateCollection({
     }).filter((version): version is string => version != null),
   )[0];
 
+  if (versionOrRange == null) {
+    return {
+      ident: item.ident,
+      notes,
+      updates: null,
+    };
+  }
+
   const newRange = rangeToString(versionOrRange);
 
   return {
     ident: item.ident,
     notes,
-    migrate: item.meta?.hasMigrations
+    migrate: selectionInfo?.hasMigrations
       ? {
           from: lowestInstalledVersion,
           to: valid(newRange) ? newRange : minVersion(newRange)?.version ?? undefined,
@@ -267,17 +260,45 @@ function parseRange(
 function ConfirmationItem({
   project,
   configuration,
-  updateItem: {ident, notes, updates, migrate},
+  updateItem,
   itemMap,
 }: {
   project: Project;
   configuration: Configuration;
-  updateItem: ItemUpdateCollection;
+  updateItem: ItemUpdateCollection | ItemWithoutUpdateCollection;
   itemMap: AppState['itemMap'];
 }) {
+  const {ident, notes} = updateItem;
   const item = itemMap.get(ident.identHash)!;
 
-  const numberOfWorkspaces = project.workspaces.length;
+  let content;
+
+  if (updateItem.updates == null) {
+    content = <></>;
+  } else {
+    const numberOfWorkspaces = project.workspaces.length;
+    const {updates, migrate} = updateItem;
+
+    content = (
+      <>
+        <Text>
+          Updating {updates.size === 1 ? 'version' : 'versions'} in package.json{' '}
+          {numberOfWorkspaces === 1 ? 'file' : 'files'}:
+        </Text>
+        {Array.from(updates.entries(), ([descriptorHash, [oldRange, newRange]]) => (
+          <Text key={descriptorHash}>
+            - {structUtils.prettyRange(configuration, oldRange)} {'=>'}{' '}
+            {structUtils.prettyRange(configuration, newRange)}
+          </Text>
+        ))}
+        {migrate != null && (
+          <Text>
+            <Text color="blueBright">ℹ</Text> This package has migrations
+          </Text>
+        )}
+      </>
+    );
+  }
 
   return (
     <Box>
@@ -287,17 +308,7 @@ function ConfirmationItem({
       <Box flexDirection="column">
         <Text>Package {item.label}</Text>
         <Box marginLeft={2} flexDirection="column">
-          <Text>
-            Updating {updates.size === 1 ? 'version' : 'versions'} in package.json{' '}
-            {numberOfWorkspaces === 1 ? 'file' : 'files'}:
-          </Text>
-          {Array.from(updates.entries(), ([descriptorHash, [oldRange, newRange]]) => (
-            <Text key={descriptorHash}>
-              - {structUtils.prettyRange(configuration, oldRange)} {'=>'}{' '}
-              {structUtils.prettyRange(configuration, newRange)}
-            </Text>
-          ))}
-          {migrate != null && <Text>This package has migrations</Text>}
+          {content}
         </Box>
         {notes.length > 0 && (
           <Box>

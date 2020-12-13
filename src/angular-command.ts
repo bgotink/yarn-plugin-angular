@@ -24,7 +24,7 @@ export abstract class AngularCommand extends BaseCommand {
         continue;
       }
 
-      if (i === 0 && workspace.manifest.scripts.has('ng')) {
+      if (i === 0 && scriptUtils.hasWorkspaceScript(workspace, 'ng')) {
         break;
       }
 

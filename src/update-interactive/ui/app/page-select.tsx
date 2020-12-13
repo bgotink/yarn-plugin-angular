@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import {Configuration, IdentHash, structUtils} from '@yarnpkg/core';
+import {Configuration, Descriptor, IdentHash, structUtils} from '@yarnpkg/core';
 import {Box, Text, useInput} from 'ink';
+import type {Range} from 'own-semver';
 import React, {useLayoutEffect, useRef, useState} from 'react';
 
 import {FullScreenBox} from '../elements/full-screen-box';
@@ -11,7 +12,7 @@ import {KeyMatcher, useListInput} from '../hooks/use-list-input';
 import {IdentListBox} from './ident-listbox';
 import {InfoBox} from './info-box';
 import {RangeSelector} from './range-selector';
-import {AppEvent, AppState, isIncluded, isRequired, isSelected, UpdatableItem} from './state';
+import type {AppEvent, AppState, UpdatableItem} from './state';
 
 interface ActiveList {
   readonly title: string;
@@ -37,13 +38,15 @@ const plus: KeyMatcher = (char, key) => key.rightArrow;
 
 export function PageSelect({
   configuration,
-  state: {itemMap, itemOrder},
+  state,
   updateState,
+  getSuggestions,
   goToNextPage,
 }: {
   configuration: Configuration;
   state: AppState;
   updateState: React.Dispatch<AppEvent>;
+  getSuggestions: (descriptor: Descriptor, range: Range | null) => readonly string[];
   goToNextPage: () => void;
 }): JSX.Element {
   const [listState, setListState] = useState<ListState>({
@@ -51,25 +54,15 @@ export function PageSelect({
     activeIdents: new Map(),
   });
 
-  const items = itemOrder.map(id => itemMap.get(id)!);
+  const items = state.itemOrder.map(id => state.itemMap.get(id)!);
 
   const itemLists = new Map([
     [
       ActiveList.Updatable,
-      items.filter(
-        item =>
-          !isSelected({itemMap}, item.identHash) &&
-          !isIncluded({itemMap}, item.identHash) &&
-          !isRequired({itemMap}, item.identHash),
-      ),
+      items.filter(item => !isSelectedOrRequired(item.identHash) && !isIncluded(item.identHash)),
     ],
-    [
-      ActiveList.Selected,
-      items.filter(
-        item => isSelected({itemMap}, item.identHash) || isRequired({itemMap}, item.identHash),
-      ),
-    ],
-    [ActiveList.Included, items.filter(item => isIncluded({itemMap}, item.identHash))],
+    [ActiveList.Selected, items.filter(item => isSelectedOrRequired(item.identHash))],
+    [ActiveList.Included, items.filter(item => isIncluded(item.identHash))],
   ]);
 
   const activeIdents = new Map(lists.map(list => [list, getActiveIdent(list)]));
@@ -93,8 +86,11 @@ export function PageSelect({
   }, [activeIdent, storedActiveIdent.current]);
 
   useLayoutEffect(() => {
-    const activeItem = itemMap.get(activeIdent!);
-    if (activeIdent != null && activeItem != null && activeItem.suggestions == null) {
+    if (
+      activeIdent != null &&
+      !state.suggestionsFetched.has(activeIdent) &&
+      !state.suggestionsFetching?.has(activeIdent)
+    ) {
       updateState({fetchSuggestionFor: activeIdent});
     }
   }, [activeIdent]);
@@ -151,7 +147,10 @@ export function PageSelect({
         <RangeSelector
           configuration={configuration}
           activeItem={tryGetItem(activeIdent)}
-          itemMap={itemMap}
+          state={state}
+          inclusion={activeIdent && state.included.get(activeIdent)}
+          selectionOrRequirement={activeIdent && state.selectedAndRequired.get(activeIdent)}
+          getSuggestions={getSuggestions}
           onChange={updateRange}
           flexGrow={1}
           flexBasis={0}
@@ -160,7 +159,7 @@ export function PageSelect({
           flexGrow={1}
           flexBasis={0}
           activeItem={tryGetItem(activeIdent)}
-          itemMap={itemMap}
+          state={state}
           configuration={configuration}
         />
       </Box>
@@ -175,7 +174,7 @@ export function PageSelect({
   );
 
   function tryGetItem(ident: IdentHash | null) {
-    return ident != null ? itemMap.get(ident)! : null;
+    return ident != null ? state.itemMap.get(ident)! : null;
   }
 
   function getActiveIdent(list: ActiveList) {
@@ -190,7 +189,7 @@ export function PageSelect({
       return itemList[0].identHash;
     }
 
-    const name = structUtils.stringifyIdent(itemMap.get(start)!.ident);
+    const name = structUtils.stringifyIdent(state.itemMap.get(start)!.ident);
 
     const firstIdxAfterName = itemList.findIndex(
       item => structUtils.stringifyIdent(item.ident) > name,
@@ -208,5 +207,17 @@ export function PageSelect({
     }
 
     return itemList[idx].identHash;
+  }
+
+  function isSelected(ident: IdentHash) {
+    return state.itemMap.get(ident)!.selectedRange != null;
+  }
+
+  function isSelectedOrRequired(ident: IdentHash) {
+    return state.selectedAndRequired.has(ident) && !isIncluded(ident);
+  }
+
+  function isIncluded(ident: IdentHash) {
+    return !isSelected(ident) && state.included.has(ident);
   }
 }

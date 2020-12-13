@@ -1,11 +1,9 @@
 export {useAppState} from './state/hook';
-export {AppEvent, AppState, UpdatableItem} from './state/interfaces';
 export {
-  getIncluders,
-  getRangeForItem,
-  getRequirers,
-  isIncluded,
-  isRequired,
-  isSelected,
-  rangeToString,
-} from './state/status';
+  AppEvent,
+  AppState,
+  UpdatableItem,
+  IncludedInformation,
+  SelectedOrRequiredInformation,
+} from './state/interfaces';
+export {rangeToString} from './state/selection';

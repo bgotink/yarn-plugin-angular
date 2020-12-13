@@ -1,6 +1,6 @@
 import {Hooks as CoreHooks, IdentHash, structUtils} from '@yarnpkg/core';
 import {Hooks as PatchHooks} from '@yarnpkg/plugin-patch';
-import {satisfies} from 'semver';
+import {satisfies} from 'own-semver';
 
 import angularDevkitBuildAngularPatch from './patches/@angular-devkit/build-angular.patch';
 import angularDevkitCorePatch from './patches/@angular-devkit/core.patch';

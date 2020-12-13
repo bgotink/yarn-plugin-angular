@@ -1,7 +1,5 @@
-import {Descriptor, Ident, IdentHash} from '@yarnpkg/core';
+import type {Descriptor, Ident, IdentHash} from '@yarnpkg/core';
 import {Range} from 'own-semver';
-
-import {UpdatableManifest} from '../../../utils';
 
 export interface UpdatableItem {
   readonly identHash: IdentHash;
@@ -14,26 +12,44 @@ export interface UpdatableItem {
   readonly disabled?: boolean;
 
   readonly selectedRange?: string | null;
+}
 
-  readonly suggestions?: string[];
+export interface SelectedOrRequiredInformation {
+  readonly by: ReadonlyMap<IdentHash, Range | string>;
 
-  readonly meta?: {
-    readonly hasMigrations: boolean;
-    readonly peerDependencies: ReadonlyMap<IdentHash, Range | string>;
-    readonly includedPackages: ReadonlyMap<IdentHash, Range | string>;
-  };
+  readonly suggestions?: readonly string[];
+
+  readonly selectedRange?: string;
+
+  readonly validRange?: Range;
+
+  readonly conflictingRanges: boolean;
+
+  readonly hasMigrations: boolean;
+}
+
+export interface IncludedInformation {
+  readonly by: Map<IdentHash, Range | string>;
+
+  readonly validRange?: Range;
 }
 
 export interface AppState {
   readonly itemMap: ReadonlyMap<IdentHash, UpdatableItem>;
   readonly itemOrder: readonly IdentHash[];
 
-  readonly fetchMetaQueue?: ReadonlySet<IdentHash>;
-  readonly fetchSuggestionQueue?: ReadonlySet<IdentHash>;
+  readonly suggestionsFetched: ReadonlySet<IdentHash>;
+  readonly metaFetched: ReadonlySet<IdentHash>;
+
+  readonly selectedAndRequired: ReadonlyMap<IdentHash, SelectedOrRequiredInformation>;
+  readonly included: ReadonlyMap<IdentHash, IncludedInformation>;
+
+  readonly metaFetching?: ReadonlySet<IdentHash>;
+  readonly suggestionsFetching?: ReadonlySet<IdentHash>;
 }
 
 export type AppEvent =
-  | {ident: IdentHash; range: string | null}
-  | {fetchSuggestionFor: IdentHash}
-  | {suggestions: {ident: IdentHash; suggestions: string[]}[]}
-  | {manifests: {ident: IdentHash; manifest: UpdatableManifest}[]};
+  | {readonly ident: IdentHash; readonly range: string | null}
+  | {readonly fetchSuggestionFor: IdentHash}
+  | {readonly suggestions: readonly IdentHash[]}
+  | {readonly manifests: readonly IdentHash[]};
