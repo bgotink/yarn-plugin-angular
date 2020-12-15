@@ -75,7 +75,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
     details: `
       This command opens a fullscreen terminal interface where you can see the packages used by your application, their status compared to the latest versions available on the remote registry, and let you upgrade.
     `,
-    examples: [['Open the upgrade window', 'yarn ng update --interactive']],
+    examples: [['Open the upgrade window', 'yarn ng update-interactive']],
   });
 
   @BaseCommand.Boolean('--next', {
@@ -88,6 +88,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
   })
   public createCommits = false;
 
+  @BaseCommand.Path('ng', 'update-interactive')
   @BaseCommand.Path('ng', 'update', '--interactive')
   public async execute(): Promise<number> {
     const configuration = await Configuration.find(this.context.cwd, this.context.plugins);
@@ -241,7 +242,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
         }
 
         if (this.createCommits) {
-          const message = ['ng update --interactive', '', 'Update packages:', ''];
+          const message = ['yarn ng update-interactive', '', 'Update packages:', ''];
 
           for (const {ident} of updateCollection.values()) {
             message.push(`- ${structUtils.stringifyIdent(ident)}`);

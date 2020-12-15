@@ -18,7 +18,7 @@ Once installed in the root `package.json` file, running `ng` will be available e
 
 ## Interactive update
 
-This plugins adds a powerful interactive update command. Try it out using `yarn ng update --interactive`.
+This plugins adds a powerful interactive update command. Try it out using `yarn ng update-interactive`.
 
 Some of the features of this command:
 
