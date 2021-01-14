@@ -1,5 +1,5 @@
 diff --git a/ngcc/src/dependencies/module_resolver.js b/ngcc/src/dependencies/module_resolver.js
-semver exclusivity ^10 || ^11
+semver exclusivity ^10 || >= 11.0.0 < 11.0.9
 --- a/ngcc/src/dependencies/module_resolver.js
 +++ b/ngcc/src/dependencies/module_resolver.js
 @@ -133,18 +133,20 @@
@@ -19,6 +19,42 @@ semver exclusivity ^10 || ^11
 +                    throw e;
                  }
 -                var modulePath = file_system_1.resolve(folder, 'node_modules', moduleName);
+-                if (this.isEntryPoint(modulePath)) {
+-                    return new ResolvedExternalModule(modulePath);
+-                }
+-                else if (this.resolveAsRelativePath(modulePath, fromPath)) {
+-                    return new ResolvedDeepImport(modulePath);
++            }
++            try {
++                const result = require.resolve(`${moduleName}/`, {paths: [file_system_1.join(folder, '__synthetic__.js')]});
++                return new ResolvedDeepImport(file_system_1.dirname(result));
++            } catch (e) {
++                if (e.code !== 'MODULE_NOT_FOUND') {
++                    throw e;
+                 }
+             }
+             return null;
+diff --git a/ngcc/src/dependencies/module_resolver.js b/ngcc/src/dependencies/module_resolver.js
+semver exclusivity ^11.0.9
+--- a/ngcc/src/dependencies/module_resolver.js
++++ b/ngcc/src/dependencies/module_resolver.js
+@@ -123,18 +123,20 @@
+          */
+         ModuleResolver.prototype.resolveAsEntryPoint = function (moduleName, fromPath) {
+             var folder = fromPath;
+-            while (!this.fs.isRoot(folder)) {
+-                folder = this.fs.dirname(folder);
+-                if (folder.endsWith('node_modules')) {
+-                    // Skip up if the folder already ends in node_modules
+-                    folder = this.fs.dirname(folder);
++            try {
++                const result = require.resolve(`${moduleName}/package.json`, {paths: [file_system_1.join(folder, '__synthetic__.js')]});
++                return new ResolvedExternalModule(file_system_1.dirname(result));
++            } catch (e) {
++                if (e.code !== 'MODULE_NOT_FOUND') {
++                    throw e;
+                 }
+-                var modulePath = this.fs.resolve(folder, 'node_modules', moduleName);
 -                if (this.isEntryPoint(modulePath)) {
 -                    return new ResolvedExternalModule(modulePath);
 -                }
