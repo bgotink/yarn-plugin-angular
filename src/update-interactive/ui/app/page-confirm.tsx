@@ -113,8 +113,24 @@ function getItemUpdateCollection({
   const selectionInfo = state.selectedAndRequired.get(ident);
   const inclusionInfo = state.included.get(ident);
 
-  const versionOrRange = item.selectedRange ?? state.selectedAndRequired.get(ident)!.selectedRange;
+  let versionOrRange = item.selectedRange ?? state.selectedAndRequired.get(ident)?.selectedRange;
   const notes: string[] = [];
+
+  if (inclusionInfo != null) {
+    const ranges = new Set(Array.from(inclusionInfo.by.values(), range => rangeToString(range)));
+
+    if (ranges.size > 1) {
+      notes.push(
+        `Multiple versions are included: ${Array.from(ranges, range =>
+          structUtils.prettyRange(configuration, range),
+        ).join(', ')}`,
+      );
+    }
+
+    if (versionOrRange == null) {
+      [versionOrRange] = ranges;
+    }
+  }
 
   if (versionOrRange == null) {
     if (!selectionInfo?.conflictingRanges) {
@@ -124,20 +140,6 @@ function getItemUpdateCollection({
     notes.push(
       `Couldn't find a version to update to, keeping ${item.label} at the current version`,
     );
-  }
-
-  if (inclusionInfo != null) {
-    if (inclusionInfo.by.size > 1) {
-      const ranges = new Set(Array.from(inclusionInfo.by.values(), range => rangeToString(range)));
-
-      if (ranges.size > 1) {
-        notes.push(
-          `Multiple versions are included: ${Array.from(ranges, range =>
-            structUtils.prettyRange(configuration, range),
-          ).join(', ')}`,
-        );
-      }
-    }
   }
 
   if (selectionInfo?.conflictingRanges) {
