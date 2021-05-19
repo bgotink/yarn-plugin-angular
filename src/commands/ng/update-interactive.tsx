@@ -289,7 +289,7 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
                 [
                   'update',
                   structUtils.stringifyIdent(ident),
-                  '--migrateOnly',
+                  '--migrate-only',
                   '--from',
                   migrate.from,
                   ...(migrate.to != null ? ['--to', migrate.to] : []),
