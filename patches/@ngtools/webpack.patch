@@ -1,4 +1,5 @@
 diff --git a/src/compiler_host.js b/src/compiler_host.js
+semver exclusivity <12.0.0-rc.0
 --- a/src/compiler_host.js
 +++ b/src/compiler_host.js
 @@ -12,7 +12,16 @@ const core_1 = require("@angular-devkit/core");
