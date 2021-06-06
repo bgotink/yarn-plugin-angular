@@ -15,6 +15,8 @@ function initAppState(itemArray: UpdatableItem[]) {
     itemMap: items,
     itemOrder,
 
+    migrationsDisabled: new Set(),
+
     metaFetched: new Set(),
     suggestionsFetched: new Set(),
 

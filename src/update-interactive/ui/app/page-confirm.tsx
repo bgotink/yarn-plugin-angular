@@ -161,7 +161,7 @@ function getItemUpdateCollection({
         locator = project.storedResolutions.get(
           structUtils.makeDescriptor(
             descriptor,
-            `${configuration.get<string>('defaultProtocol')}${descriptor.range}`,
+            `${configuration.get('defaultProtocol')}${descriptor.range}`,
           ).descriptorHash,
         );
       }
@@ -205,12 +205,13 @@ function getItemUpdateCollection({
   return {
     ident: item.ident,
     notes,
-    migrate: selectionInfo?.hasMigrations
-      ? {
-          from: lowestInstalledVersion,
-          to: valid(newRange) ? newRange : minVersion(newRange)?.version ?? undefined,
-        }
-      : undefined,
+    migrate:
+      selectionInfo?.hasMigrations && !state.migrationsDisabled.has(ident)
+        ? {
+            from: lowestInstalledVersion,
+            to: valid(newRange) ? newRange : minVersion(newRange)?.version ?? undefined,
+          }
+        : undefined,
     updates: new Map(
       requestedDescriptors.map(descriptor => {
         const {parsedRange, stringifyRange} = parseRange(descriptor.range);

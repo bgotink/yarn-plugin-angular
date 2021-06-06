@@ -19,10 +19,12 @@ export function InfoBox({
     return <Box borderColor="grey" borderStyle="round" {...boxProps} />;
   }
 
+  const selectionInfo = state.selectedAndRequired.get(activeItem.identHash);
+
   const includers = state.included.get(activeItem.identHash)?.by;
-  const requirers = state.selectedAndRequired.get(activeItem.identHash)?.by;
-  const newRange =
-    activeItem.selectedRange ?? state.selectedAndRequired.get(activeItem.identHash)?.selectedRange;
+  const requirers = selectionInfo?.by;
+  const newRange = activeItem.selectedRange ?? selectionInfo?.selectedRange;
+  const hasMigrations = selectionInfo?.hasMigrations;
 
   return (
     <Box
@@ -47,6 +49,14 @@ export function InfoBox({
       <Text>
         Selected new version: {newRange ? structUtils.prettyRange(configuration, newRange) : 'none'}
       </Text>
+      {hasMigrations && (
+        <Text>
+          {state.migrationsDisabled.has(activeItem.identHash)
+            ? "Package's migrations have been disabled"
+            : 'Package has migrations'}
+        </Text>
+      )}
+      <Text></Text>
       <Box>
         {!!includers?.size && (
           <Box flexDirection="column">

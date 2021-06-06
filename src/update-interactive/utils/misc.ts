@@ -23,6 +23,16 @@ export const miscUtils = {
     return new Set(set).add(value);
   },
 
+  setToggle<T>(set: ReadonlySet<T>, value: T): ReadonlySet<T> {
+    if (set.has(value)) {
+      const copy = new Set(set);
+      copy.delete(value);
+      return copy;
+    }
+
+    return new Set(set).add(value);
+  },
+
   setEquals<T>(set: ReadonlySet<T> | undefined, other: ReadonlySet<T> | undefined): boolean {
     if ((set?.size ?? 0) !== (other?.size ?? 0)) {
       return false;
@@ -39,6 +49,18 @@ export const miscUtils = {
     }
 
     return true;
+  },
+
+  setIntersect<T>(set: ReadonlySet<T>, filter: ReadonlySet<T>): ReadonlySet<T> {
+    const copy = new Set(set);
+
+    for (const el of copy) {
+      if (!filter.has(el)) {
+        copy.delete(el);
+      }
+    }
+
+    return copy.size === set.size ? set : copy;
   },
 
   mapWith<K, V>(map: ReadonlyMap<K, V> | undefined, key: K, value: V): ReadonlyMap<K, V> {

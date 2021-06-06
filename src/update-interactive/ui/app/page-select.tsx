@@ -113,6 +113,10 @@ export function PageSelect({
       if (key.return) {
         goToNextPage();
       }
+
+      if (ch === 'm' && activeIdent != null) {
+        updateState({toggleMigrationFor: activeIdent});
+      }
     },
     {isActive: true},
   );
@@ -166,8 +170,9 @@ export function PageSelect({
       <Box flexBasis="auto" flexGrow={0} flexShrink={0}>
         <Text>
           Use the <Key>left</Key>/<Key>right</Key> to change the active list and <Key>up</Key>/
-          <Key>down</Key> arrow keys to change the active item. Hit <Key>enter</Key> to commit your
-          selection, or <Key>ctrl-c</Key> to quit.
+          <Key>down</Key> arrow keys to change the active item. Use <Key>m</Key> to toggle
+          migrations for a package. Hit <Key>enter</Key> to commit your selection, or{' '}
+          <Key>ctrl-c</Key> to quit.
         </Text>
       </Box>
     </FullScreenBox>

@@ -41,6 +41,8 @@ export interface AppState {
   readonly suggestionsFetched: ReadonlySet<IdentHash>;
   readonly metaFetched: ReadonlySet<IdentHash>;
 
+  readonly migrationsDisabled: ReadonlySet<IdentHash>;
+
   readonly selectedAndRequired: ReadonlyMap<IdentHash, SelectedOrRequiredInformation>;
   readonly included: ReadonlyMap<IdentHash, IncludedInformation>;
 
@@ -51,5 +53,6 @@ export interface AppState {
 export type AppEvent =
   | {readonly ident: IdentHash; readonly range: string | null}
   | {readonly fetchSuggestionFor: IdentHash}
+  | {readonly toggleMigrationFor: IdentHash}
   | {readonly suggestions: readonly IdentHash[]}
   | {readonly manifests: readonly IdentHash[]};

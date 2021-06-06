@@ -31,6 +31,16 @@ export function createAppStateReducer(
         'suggestionsFetching',
         miscUtils.setWith(state.suggestionsFetching, event.fetchSuggestionFor),
       );
+    } else if ('toggleMigrationFor' in event) {
+      if (!state.selectedAndRequired.has(event.toggleMigrationFor)) {
+        return state;
+      }
+
+      return miscUtils.objectWith(
+        state,
+        'migrationsDisabled',
+        miscUtils.setToggle(state.migrationsDisabled, event.toggleMigrationFor),
+      );
     } else if ('suggestions' in event) {
       const suggestionsFetched = addAllToSet(state.suggestionsFetched, event.suggestions);
 

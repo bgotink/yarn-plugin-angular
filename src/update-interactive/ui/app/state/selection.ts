@@ -231,11 +231,7 @@ export function updateSelection(
   }
 
   for (const [ident, {by}] of selectedAndRequired) {
-    if (
-      by.size === 0 &&
-      (included.get(ident)?.by.size ?? 0) === 0 &&
-      !state.itemMap.get(ident)!.selectedRange
-    ) {
+    if (by.size === 0 && !included.has(ident) && !state.itemMap.get(ident)!.selectedRange) {
       selectedAndRequired.delete(ident);
     }
   }
@@ -300,6 +296,10 @@ export function updateSelection(
     ...state,
     ...appSelection,
 
+    migrationsDisabled: miscUtils.setIntersect(
+      state.migrationsDisabled,
+      new Set(selectedAndRequired.keys()),
+    ),
     suggestionsFetching: miscUtils.setWithAll(state.suggestionsFetching, requiresSuggestions),
   };
 
