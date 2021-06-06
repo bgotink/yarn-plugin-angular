@@ -251,10 +251,15 @@ export default class NgUpdateInteractiveCommand extends BaseCommand {
           await this.createCommit(message.join('\n'));
         }
 
+        const updatesWithMigrations = Array.from(updateCollection.values()).filter(
+          item => item.migrate != null,
+        );
+
+        if (updatesWithMigrations.length === 0) {
+          return;
+        }
+
         await report.startTimerPromise('Running migrations', async () => {
-          const updatesWithMigrations = Array.from(updateCollection.values()).filter(
-            item => item.migrate != null,
-          );
           const progress = StreamReport.progressViaCounter(updatesWithMigrations.length);
           report.reportProgress(progress);
 
