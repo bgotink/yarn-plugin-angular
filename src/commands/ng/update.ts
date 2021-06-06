@@ -6,6 +6,8 @@ export default class extends AngularCommand {
 
   @AngularCommand.Path('ng', 'update')
   public execute(): Promise<number> {
+    process.env.NG_DISABLE_VERSION_CHECK = '1';
+
     return this.ng(['update', ...this.args]);
   }
 }
