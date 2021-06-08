@@ -71,21 +71,6 @@ export function PageSelect({
   const storedActiveIdent = useRef<IdentHash | null>(activeIdent);
 
   useLayoutEffect(() => {
-    if (activeIdent === storedActiveIdent.current || storedActiveIdent.current == null) {
-      return;
-    }
-
-    const activeList = lists.find(list =>
-      itemLists.get(list)!.find(item => item.identHash === storedActiveIdent.current!),
-    )!;
-
-    setListState({
-      activeIdents: new Map(listState.activeIdents).set(activeList, activeIdent!),
-      activeList,
-    });
-  }, [activeIdent, storedActiveIdent.current]);
-
-  useLayoutEffect(() => {
     if (
       activeIdent != null &&
       !state.suggestionsFetched.has(activeIdent) &&
@@ -130,6 +115,15 @@ export function PageSelect({
   }
 
   function updateRange(range: string | null) {
+    const newList = range != null ? ActiveList.Selected : ActiveList.Updatable;
+
+    if (newList !== listState.activeList) {
+      setListState({
+        activeList: newList,
+        activeIdents: new Map(listState.activeIdents).set(newList, activeIdent!),
+      });
+    }
+
     updateState({range, ident: activeIdent!});
   }
 
