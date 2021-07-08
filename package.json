@@ -1,6 +1,6 @@
 {
   "name": "@bgotink/yarn-plugin-angular",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "scripts": {
     "version": "scripts/version.sh",
     "build": "rollup -c",
