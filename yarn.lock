@@ -80,7 +80,7 @@ __metadata:
     rollup-plugin-terser: ^7.0.2
     semver: ^7.3.2
     tslib: ^2.0.1
-    typescript: ^4.0.3
+    typescript: ^4.3.5
   peerDependencies:
     "@yarnpkg/core": ^2.3.1
     "@yarnpkg/fslib": ^2.3.0
@@ -3819,23 +3819,33 @@ resolve@^1.17.0:
   languageName: node
   linkType: hard
 
-typescript@^4.0.3:
-  version: 4.0.3
-  resolution: "typescript@npm:4.0.3"
+typescript@^4.3.5:
+  version: 4.3.5
+  resolution: "typescript@npm:4.3.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 5c892e132756a83d22030d7fb38be47cde27613f71d233dbe7faf79e4a92852c5146bfddcaf8c2da1a37d35ae8bf7b8c888fdcd763d5ad184cea6b21e7466838
+  checksum: d9a8e78d72dd19896e6bfa73ab2a0fcea6eca2700d1d6e7c33f67a970af54a3e0fed8f715a8c4e6a0ff7fc0995067b394b2003518ab0aa84cd396377e54b760c
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.0.3#builtin<compat/typescript>":
-  version: 4.0.3
-  resolution: "typescript@patch:typescript@npm%3A4.0.3#builtin<compat/typescript>::version=4.0.3&hash=cc6730"
+"typescript@patch:typescript@^4.3.5#builtin<compat/typescript>":
+  version: 4.3.5
+  resolution: "typescript@patch:typescript@npm%3A4.3.5#builtin<compat/typescript>::version=4.3.5&hash=ddfc1b"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c92843a6af50170f49158b6eb5726b80c5c22074a337d066eee278a7d08d1109667e435e96207ab1314f63f4629555e89c26645ef55b937ea6baf80d190768f6
+  checksum: 7f0b8343f71ecac18095be1476b398aca420ab60dc207cc1efe078f381eef5527b80a518297720257114cdbda65612f8839e4b63e85dc95e67ac5cbbade8bdf0
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@patch%3Atypescript@^4.3.5%23builtin<compat/typescript>#builtin<ng/typescript>":
+  version: 4.3.5
+  resolution: "typescript@patch:typescript@patch%3Atypescript@npm%253A4.3.5%23builtin<compat/typescript>%3A%3Aversion=4.3.5&hash=ddfc1b#builtin<ng/typescript>::version=4.3.5&hash=42c630"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 1b1d42a3348a3d79fe71909d0638f28deaabff0f3b595bb46848e1bef60d9f64ce35b29d91e61d85beae251d0b2d3141bd32d157fbcfb84fd77a0ea1b1d17de3
   languageName: node
   linkType: hard
 
